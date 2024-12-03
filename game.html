@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Barkle</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="attempts-history" id="attempts-history"></div>
+        <div class="container">
+            <h1>Barkle 🐕</h1>
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="image-container">
+                <img id="dog-image" class="dog-image" alt="Dog breed to guess">
+            </div>
+            <div id="buttons" class="buttons-container"></div>
+            <div id="feedback" class="feedback"></div>
+            <div id="stats" class="stats"></div>
+        </div>
+    </div>
+    <div id="completion-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🐕 All Done for Today! 🐕</h2>
+            <p>Come back tomorrow for more Barkle!</p>
+            <button id="share-results-btn" class="option-btn">Share Results</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 

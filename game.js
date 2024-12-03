@@ -3,11 +3,10 @@ class BarkleGame {
         this.MAX_ATTEMPTS = 5;  // Number of guesses allowed per day
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
+        this.todaysSeed = this.generateDailySeed();
         this.loadGameState();   // Load saved state for today
         this.loadSounds();
         this.initialize();
-        this.todaysSeed = this.generateDailySeed();
-        this.dailyBreeds = this.generateDailyBreeds();
     }
 
     generateDailySeed() {
@@ -239,7 +238,7 @@ class BarkleGame {
             const options = [this.currentBreed];
             
             // Use seeded random for wrong answers
-            let wrongSeed = this.todaysSeed + (currentAttempt * 100); // Ensure unique wrong answers for each round
+            let wrongSeed = this.todaysSeed + (currentAttempt * 100);
             while (options.length < 4) {
                 wrongSeed++;
                 const wrongIndex = Math.floor(this.seededRandom(wrongSeed) * this.allBreeds.length);
@@ -250,10 +249,20 @@ class BarkleGame {
             // Use seeded shuffle
             options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
 
-            // Get random dog image
+            // Get random dog image with loading state
+            const dogImage = document.getElementById('dog-image');
+            dogImage.classList.add('loading');
+            
             const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
             const imageData = await imageResponse.json();
-            document.getElementById('dog-image').src = imageData.message;
+            
+            // Create new image object to preload
+            const img = new Image();
+            img.onload = () => {
+                dogImage.src = imageData.message;
+                dogImage.classList.remove('loading');
+            };
+            img.src = imageData.message;
 
             // Create buttons
             const buttonsContainer = document.getElementById('buttons');

@@ -1,30 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Barkle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barkle - The Daily Dog Breed Game</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        .landing-container {
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .landing-logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 0.2em;
+        }
+
+        .landing-description {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .play-button {
+            background-color: #538d4e;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(83, 141, 78, 0.3);
+            background-color: #66aa61;
+        }
+
+        .landing-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="attempts-history" id="attempts-history"></div>
-        <div class="container">
-            <h1>Barkle 🐕</h1>
-            <div class="score">Score: <span id="score">0</span></div>
-            <img id="dog-image" class="dog-image" alt="Guess the dog breed!">
-            <div id="buttons" class="buttons-container"></div>
-            <div id="feedback" class="feedback"></div>
-            <div id="stats" class="stats"></div>
+    <div class="landing-container">
+        <div class="landing-icon">🐕</div>
+        <div class="landing-logo">BARKLE</div>
+        <div class="landing-description">
+            5 chances to guess different dog breeds from their photos. 
+            A new set of pups every day!
         </div>
+        <button class="play-button" onclick="window.location.href='game.html'">Play</button>
     </div>
-    <div id="completion-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>🐕 All Done for Today! 🐕</h2>
-            <p>Come back tomorrow for more Barkle!</p>
-            <button id="share-results-btn" class="option-btn">Share Results</button>
-        </div>
-    </div>
-    <script src="game.js"></script>
 </body>
 </html> 
