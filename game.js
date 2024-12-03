@@ -6,6 +6,24 @@ class BarkleGame {
         this.loadGameState();   // Load saved state for today
         this.loadSounds();
         this.initialize();
+        this.todaysSeed = this.generateDailySeed();
+        this.dailyBreeds = this.generateDailyBreeds();
+    }
+
+    generateDailySeed() {
+        const today = new Date();
+        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        let hash = 0;
+        for (let i = 0; i < dateString.length; i++) {
+            hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+    }
+
+    seededRandom(seed) {
+        const x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
     }
 
     loadGameState() {
@@ -40,6 +58,7 @@ class BarkleGame {
             const response = await fetch('https://dog.ceo/api/breeds/list/all');
             const data = await response.json();
             this.allBreeds = Object.keys(data.message);
+            this.dailyBreeds = this.generateDailyBreeds();
             
             // If game is over, show completion modal
             if (this.gameOver) {
@@ -214,17 +233,22 @@ class BarkleGame {
 
     async newRound() {
         try {
-            // Select correct breed and three random incorrect breeds
-            this.currentBreed = this.allBreeds[Math.floor(Math.random() * this.allBreeds.length)];
+            // Get the current breed from our pre-generated daily breeds
+            const currentAttempt = this.attempts.length;
+            this.currentBreed = this.dailyBreeds[currentAttempt];
             const options = [this.currentBreed];
             
+            // Use seeded random for wrong answers
+            let wrongSeed = this.todaysSeed + (currentAttempt * 100); // Ensure unique wrong answers for each round
             while (options.length < 4) {
-                const wrong = this.allBreeds[Math.floor(Math.random() * this.allBreeds.length)];
+                wrongSeed++;
+                const wrongIndex = Math.floor(this.seededRandom(wrongSeed) * this.allBreeds.length);
+                const wrong = this.allBreeds[wrongIndex];
                 if (!options.includes(wrong)) options.push(wrong);
             }
 
-            // Shuffle options
-            options.sort(() => Math.random() - 0.5);
+            // Use seeded shuffle
+            options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
 
             // Get random dog image
             const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
@@ -256,11 +280,20 @@ class BarkleGame {
 
     async loadSounds() {
         try {
-            this.happyBark = new Audio('happy_bark.wav');
-            this.sadBark = new Audio('sad_bark.wav');
+            this.happyBark = new Audio('happy_bark.mov');
+            this.sadBark = new Audio('angry_bark.mov');
         } catch (error) {
             console.error('Failed to load sounds:', error);
         }
+    }
+
+    generateDailyBreeds() {
+        const breeds = [];
+        for (let i = 0; i < this.MAX_ATTEMPTS; i++) {
+            const index = Math.floor(this.seededRandom(this.todaysSeed + i) * this.allBreeds.length);
+            breeds.push(this.allBreeds[index]);
+        }
+        return breeds;
     }
 }
 
