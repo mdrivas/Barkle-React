@@ -8,7 +8,7 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta property="og:title" content="Barkle - The Daily Dog Breed Game">
     <meta property="og:description" content="5 chances to guess different dog breeds from their photos. A new set of pups every day!">
-    <meta property="og:image" content="https://barkle.netlify.app/path-to-your-dog-icon.png">
+    <meta property="og:image" content="https://barkle.netlify.app/logo.webp">
     <meta property="og:url" content="https://barkle.netlify.app">
     <meta property="og:type" content="website">
     <style>
@@ -17,11 +17,12 @@
             padding: 20px;
             text-align: center;
             margin: 0 auto;
-            min-height: 100vh;
+            min-height: calc(100vh - 80px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding-bottom: 80px;
         }
 
         .landing-logo {
@@ -62,6 +63,77 @@
             font-size: 3rem;
             margin-bottom: 20px;
         }
+
+    /* ... other styles remain the same ... */
+
+        .logo-container {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 20px;
+            position: relative;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            overflow: hidden;  /* Added to keep image within bounds */
+        }
+
+        .logo-image {
+            width: 184%;  /* Increased from 100% to zoom in */
+            height: 184%;  /* Increased from 100% to zoom in */
+            object-fit: cover;  /* Changed from contain to cover */
+            position: absolute;
+            top: 62%;
+            left: 49%;
+            transform: translate(-50%, -50%);  /* Center the enlarged image */
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-container:hover .logo-image {
+            transform: translate(-50%, -50%) scale(1.05);  /* Updated transform to maintain centering */
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            left: -50vw;
+            right: -50vw;
+            top: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: -1;
+        }
+
+        footer a {
+            color: #538d4e;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #66aa61;
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
@@ -77,7 +149,9 @@
 </head>
 <body>
     <div class="landing-container">
-        <div class="landing-icon">🐕</div>
+        <div class="logo-container">
+            <img src="logo.webp" alt="Barkle Logo" class="logo-image">
+        </div>
         <div class="landing-logo">BARKLE</div>
         <div class="landing-description">
             5 chances to guess different dog breeds from their photos. 
@@ -85,9 +159,9 @@
         </div>
         <button class="play-button" onclick="window.location.href='game.html'">Play</button>
     </div>
-    <footer style="text-align: center; padding: 20px; position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.5);">
-        <a href="/privacy.html" style="color: #538d4e; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-        <a href="/terms.html" style="color: #538d4e; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+    <footer>
+        <a href="/privacy.html">Privacy Policy</a> |
+        <a href="/terms.html">Terms of Service</a>
     </footer>
 </body>
 </html> 
