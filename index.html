@@ -156,15 +156,23 @@
             z-index: 1001;
         }
 
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .modal-content {
             background: #1a1a1b;
-            margin: 15% auto;
             padding: 20px;
             width: 80%;
             max-width: 500px;
+            max-height: 80vh;
             border-radius: 15px;
             position: relative;
             color: white;
+            overflow-y: auto;
+            margin: 0 auto;
         }
 
         .close {
@@ -188,6 +196,10 @@
         .score-rank {
             font-weight: bold;
             color: #538d4e;
+        }
+
+        body.no-scroll {
+            overflow: hidden; /* Disable scrolling */
         }
     </style>
     <!-- Google Analytics -->
@@ -243,13 +255,15 @@
     <script>
         function showLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
-            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('no-scroll');
             loadTodayScores();
         }
 
         function closeLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
-            modal.style.display = 'none';
+            modal.classList.remove('show');
+            document.body.classList.remove('no-scroll');
         }
 
         function loadTodayScores() {
