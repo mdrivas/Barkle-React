@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #121213;
@@ -119,22 +119,22 @@ h1:hover::after {
     padding: 16px 20px;
     font-size: 14px;
     cursor: pointer;
-    border: 2px solid #3a3a3c;
-    border-radius: 8px;
-    background-color: #121213;
+    border: none;
+    background-color: #2a2a2b;
     color: #ffffff;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     text-transform: uppercase;
     font-weight: bold;
-    transition: all 0.2s ease;
     letter-spacing: 0.05em;
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .option-btn:hover {
+    background-color: #3a3a3c;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    background-color: #2a2a2b;
 }
 
 .option-btn:active {
@@ -298,6 +298,7 @@ h1:hover::after {
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(8px);
 }
 
 .modal-content {
@@ -309,7 +310,7 @@ h1:hover::after {
     max-width: 400px;
     width: 90%;
     animation: modalFadeIn 0.4s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .modal-content h2 {
@@ -486,4 +487,153 @@ h1:hover::after {
     justify-content: center;
     border-radius: 8px;
     overflow: hidden;
-} 
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .game-wrapper {
+        padding: 10px;
+    }
+
+    .game-content {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .container {
+        width: 95%;
+        padding: 10px;
+        margin: 0;
+        order: 1;
+    }
+
+    .attempts-history {
+        position: static;
+        width: 95%;
+        height: 150px;
+        margin: 10px auto;
+        padding: 10px;
+        order: 2;
+        transform: none;
+        top: auto;
+        left: auto;
+    }
+
+    h1 {
+        font-size: 22px;
+        margin-bottom: 0;
+    }
+
+    .score {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .image-container {
+        height: 180px;
+        margin: 5px 0;
+    }
+
+    .dog-image {
+        height: 100%;
+    }
+
+    .buttons-container {
+        gap: 6px;
+        margin: 5px 0;
+    }
+
+    .option-btn {
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+
+    .feedback {
+        min-height: 20px;
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+
+    .attempts-history {
+        height: 150px;
+        margin: 10px auto;
+        padding: 10px;
+    }
+
+    .stats-container {
+        width: 95%;
+        padding: 8px 10px;
+        margin: 10px auto;
+        font-size: 12px;
+        box-sizing: border-box;
+    }
+
+    .stats-container > div {
+        padding: 0 5px;
+        font-size: 11px;
+        letter-spacing: 0;
+    }
+
+    /* Remove hover effect on mobile */
+    .stats-container:hover {
+        transform: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Additional breakpoint for very small screens */
+    @media (max-width: 380px) {
+        .stats-container {
+            padding: 6px 5px;
+        }
+
+        .stats-container > div {
+            padding: 0 3px;
+            font-size: 10px;
+        }
+    }
+
+    /* Adjust spacing between elements */
+    .buttons-container {
+        margin: 10px 0;
+        gap: 8px;
+    }
+
+    /*
+}
+
+/* Additional modern styling */
+body {
+    font-family: 'Roboto', sans-serif; /* Use a modern font */
+}
+
+.option-btn {
+    border: none;
+    background-color: #2a2a2b;
+    color: #ffffff;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.option-btn:hover {
+    background-color: #3a3a3c;
+    transform: translateY(-2px);
+}
+
+.modal {
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    animation: modalFadeIn 0.4s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+}
