@@ -11,18 +11,17 @@ class BarkleGame {
 
     generateDailySeed() {
         const today = new Date();
-        const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-        let hash = 0;
-        for (let i = 0; i < dateString.length; i++) {
-            hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
-            hash = hash & hash; // Convert to 32-bit integer
-        }
-        return Math.abs(hash);
+        const dateHash = (today.getFullYear() * 31 + 
+                         today.getMonth() * 12 + 
+                         today.getDate()) * 2654435761;
+        return Math.abs(dateHash) % 2147483647;
     }
 
     seededRandom(seed) {
-        const x = Math.sin(seed++) * 10000;
-        return x - Math.floor(x);
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
     }
 
     loadGameState() {
@@ -77,13 +76,15 @@ class BarkleGame {
                 // Set up share button
                 const shareBtn = document.getElementById('share-results-btn');
                 shareBtn.onclick = () => this.shareResults();
-            } else if (this.attempts.length === 0) {
-                // If it's a new game, start new round
-                this.newRound();
             } else {
-                // Resume existing game
-                this.currentBreed = JSON.parse(localStorage.getItem('barkleState')).currentBreed;
-                this.updateDisplay();
+                // Resume existing game or start new one
+                if (this.attempts.length > 0) {
+                    // Resume from last attempt
+                    await this.resumeGame();
+                } else {
+                    // If it's a new game, start new round
+                    this.newRound();
+                }
             }
             
             this.updateStats();
@@ -204,17 +205,29 @@ class BarkleGame {
         const totalGuesses = this.attempts.length;
         
         // Choose ASCII art based on score
-        let dogArt = correctGuesses >= 3 
-            ? `  ∩――∩ 
-( ´•ω•)  
-/    ⊂ﾉ
+        let dogArt;
+        if (correctGuesses >= 4) {
+            // Super happy dog for 4-5 correct
+            dogArt = `  ∩＿∩
+( ˆωˆ )
+/    ♥ﾉ
 (    )
-｜｜Ｊ`
-            : ` ∩――∩ 
-( ´•︵•) 
+｜｜Ｊ`;
+        } else if (correctGuesses >= 3) {
+            // Regular happy dog for 3 correct
+            dogArt = `  ∩＿∩
+( ´•ω•)
 /    ⊂ﾉ
 (    )
 ｜｜Ｊ`;
+        } else {
+            // Sad dog for 0-2 correct
+            dogArt = `  ∩＿∩
+( ´•︵•)
+/    ⊂ﾉ
+(    )
+｜｜Ｊ`;
+        }
 
         const attemptsText = this.attempts.map(a => a.correct ? '🟩' : '⬜').join('');
         
@@ -297,12 +310,25 @@ class BarkleGame {
     }
 
     generateDailyBreeds() {
-        const breeds = [];
-        for (let i = 0; i < this.MAX_ATTEMPTS; i++) {
-            const index = Math.floor(this.seededRandom(this.todaysSeed + i) * this.allBreeds.length);
-            breeds.push(this.allBreeds[index]);
+        const breeds = new Set();
+        const dailyBreeds = [];
+        let attempts = 0;
+        const maxAttempts = 100;
+
+        while (breeds.size < this.MAX_ATTEMPTS && attempts < maxAttempts) {
+            const seed = this.todaysSeed * (breeds.size + 1) * 16807;
+            const random = this.seededRandom(seed);
+            const index = Math.floor(random * this.allBreeds.length);
+            const breed = this.allBreeds[index];
+            
+            if (!breeds.has(breed)) {
+                breeds.add(breed);
+                dailyBreeds.push(breed);
+            }
+            attempts++;
         }
-        return breeds;
+        
+        return dailyBreeds;
     }
 }
 
