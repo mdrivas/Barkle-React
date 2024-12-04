@@ -227,6 +227,7 @@
             <button class="play-button" onclick="window.location.href='game.html'">Play</button>
             <button class="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button>
         </div>
+        <div id="totalGamesPlayed" class="total-games-played" style="color: #ffffff; margin-top: -20px; margin-bottom: 20px;"></div>
     </div>
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
@@ -285,10 +286,12 @@
             }
 
             scores.forEach((score, index) => {
-                // Choose dog emoji based on score
+                // Determine emoji based on score
                 let dogEmoji;
-                if (score.score >= 4) {
-                    dogEmoji = '🐕‍🦺'; // Service dog (best performance)
+                if (score.score === 5) {
+                    dogEmoji = '👑'; // Crown for perfect score
+                } else if (score.score >= 4) {
+                    dogEmoji = '🐕‍🦺'; // Service dog
                 } else if (score.score >= 3) {
                     dogEmoji = '🐕'; // Regular dog
                 } else {
@@ -306,7 +309,28 @@
             });
         }
 
+        // Add this new function to load total games on page load
+        function loadTotalGames() {
+            const db = firebase.database();
+            const today = new Date().toDateString();
+            
+            db.ref('scores')
+                .orderByChild('date')
+                .equalTo(today)
+                .once('value')
+                .then((snapshot) => {
+                    const totalGames = snapshot.numChildren();
+                    const totalGamesElement = document.getElementById('totalGamesPlayed');
+                    totalGamesElement.innerHTML = ` ${totalGames} games played today`;
+                })
+                .catch((error) => {
+                    console.error('Error loading total games:', error);
+                });
+        }
+
+        // Update the window.onload function
         window.onload = function() {
+            loadTotalGames(); // Load total games when page loads
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('showLeaderboard') === 'true') {
                 showLeaderboard();

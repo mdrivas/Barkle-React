@@ -570,10 +570,9 @@ class BarkleGame {
 
     saveScore(correctGuesses) {
         const db = firebase.database();
-        
         return db.ref('scores').push({
             score: correctGuesses,
-            date: this.gameDate.toDateString(),  // Use the game's date instead of today
+            date: this.gameDate.toDateString(),
             name: this.playerName || 'Anonymous doggy',
             timestamp: Date.now()
         });
