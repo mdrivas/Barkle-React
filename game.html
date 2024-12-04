@@ -59,6 +59,15 @@
             <button id="share-results-btn" class="option-btn">Share Results</button>
         </div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            databaseURL: "https://barkle-9f983-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
     <script src="game.js"></script>
 </body>
 </html> 

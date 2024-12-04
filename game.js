@@ -10,10 +10,74 @@ class BarkleGame {
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
         this.todaysSeed = this.generateDailySeed();
-        this.gameDate = new Date();  // Move this before initialize()
         this.loadGameState();   // Load saved state for today
         this.loadSounds();
         this.initialize();
+        this.gameDate = new Date();  // Initialize with today's date
+        
+        // Get player name from localStorage or prompt for it
+        this.playerName = localStorage.getItem('playerName');
+        if (!this.playerName) {
+            this.promptForName();
+        }
+    }
+
+    promptForName() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>🐕 Welcome to Barkle! 🐕</h2>
+                <p>What should we call you?</p>
+                <input type="text" 
+                       id="player-name" 
+                       maxlength="20" 
+                       placeholder="Your name"
+                       class="name-input"
+                       value="${this.playerName || ''}">  <!-- Pre-fill if exists -->
+                <button class="option-btn" id="save-name">Start Playing</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add these styles if not already in your CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            .name-input {
+                padding: 10px;
+                margin: 10px 0;
+                width: 100%;
+                border: 2px solid #538d4e;
+                border-radius: 5px;
+                background: #1a1a1b;
+                color: white;
+                font-size: 1.1em;
+            }
+            
+            .name-input:focus {
+                outline: none;
+                border-color: #66aa61;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const input = modal.querySelector('#player-name');
+        const button = modal.querySelector('#save-name');
+
+        const saveName = () => {
+            let name = input.value.trim();
+            if (name === '') name = 'Anonymous';
+            this.playerName = name;  // Store in class
+            localStorage.setItem('playerName', name);  // Store in localStorage
+            modal.remove();
+        };
+
+        button.onclick = saveName;
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter') saveName();
+        };
     }
 
     generateDailySeed() {
@@ -40,12 +104,10 @@ class BarkleGame {
             this.score = 0;
             this.attempts = [];
             this.gameOver = false;
-            this.gameDate = new Date();  // Reset to today
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
             this.gameOver = savedState.gameOver || false;
-            this.gameDate = savedState.gameDate ? new Date(savedState.gameDate) : new Date();  // Load saved date
         }
     }
 
@@ -85,8 +147,11 @@ class BarkleGame {
                     <h2>🐕 All Done for Today! 🐕</h2>
                     <p>Score: ${correctGuesses}/${this.MAX_ATTEMPTS}</p>
                     <p>Come back tomorrow for more Barkle!</p>
-                    <button id="share-results-btn" class="option-btn">Share Results</button>
-                    ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
+                    <div class="button-group">
+                        <button id="share-results-btn" class="option-btn">Share Results</button>
+                        <button id="view-leaderboard-btn" class="option-btn">View Leaderboard</button>
+                        ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
+                    </div>
                 `;
                 
                 // Store reference to 'this' for event handlers
@@ -103,6 +168,14 @@ class BarkleGame {
                     const playYesterdayBtn = document.getElementById('play-yesterday-btn');
                     playYesterdayBtn.onclick = function() {
                         self.playYesterday();
+                    };
+                }
+
+                // Add the leaderboard button handler
+                const leaderboardBtn = document.getElementById('view-leaderboard-btn');
+                if (leaderboardBtn) {
+                    leaderboardBtn.onclick = function() {
+                        window.location.href = 'index.html?showLeaderboard=true';
                     };
                 }
             } else {
@@ -191,6 +264,14 @@ class BarkleGame {
             // Calculate final score
             const correctGuesses = this.attempts.filter(attempt => attempt.correct).length;
             
+            // Save score to Firebase BEFORE showing modal
+            try {
+                await this.saveScore(correctGuesses);
+                console.log('Score saved successfully');
+            } catch (error) {
+                console.error('Failed to save score:', error);
+            }
+            
             // Show completion modal with score
             const modal = document.getElementById('completion-modal');
             modal.style.display = 'flex';
@@ -204,8 +285,11 @@ class BarkleGame {
                 <h2>🐕 All Done for Today! 🐕</h2>
                 <p>Score: ${correctGuesses}/${this.MAX_ATTEMPTS}</p>
                 <p>Come back tomorrow for more Barkle!</p>
-                <button id="share-results-btn" class="option-btn">Share Results</button>
-                ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
+                <div class="button-group">
+                    <button id="share-results-btn" class="option-btn">Share Results</button>
+                    <button id="view-leaderboard-btn" class="option-btn">View Leaderboard</button>
+                    ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
+                </div>
             `;
             
             // Store reference to 'this' for event handlers
@@ -222,6 +306,14 @@ class BarkleGame {
                 const playYesterdayBtn = document.getElementById('play-yesterday-btn');
                 playYesterdayBtn.onclick = function() {
                     self.playYesterday();
+                };
+            }
+
+            // Add the leaderboard button handler
+            const leaderboardBtn = document.getElementById('view-leaderboard-btn');
+            if (leaderboardBtn) {
+                leaderboardBtn.onclick = function() {
+                    window.location.href = 'index.html?showLeaderboard=true';
                 };
             }
         }
@@ -474,6 +566,17 @@ class BarkleGame {
             errorDiv.remove();
         }
         document.body.classList.remove('modal-open');  // Remove blur effect
+    }
+
+    saveScore(correctGuesses) {
+        const db = firebase.database();
+        
+        return db.ref('scores').push({
+            score: correctGuesses,
+            date: this.gameDate.toDateString(),  // Use the game's date instead of today
+            name: this.playerName || 'Anonymous doggy',
+            timestamp: Date.now()
+        });
     }
 }
 
