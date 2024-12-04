@@ -1,5 +1,11 @@
 class BarkleGame {
     constructor() {
+        this.errorMessages = {
+            general: "Ruh roh! Something went wrong. Let's fetch those dog pics again!",
+            network: "Woof! Seems like our dog pics are playing hide and seek. Try again?",
+            image: "Paw snap! This puppy picture is being stubborn. Fetching another...",
+            api: "Our dog database is taking a nap. Come back later today!"
+        };
         this.MAX_ATTEMPTS = 5;  // Number of guesses allowed per day
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
@@ -54,6 +60,9 @@ class BarkleGame {
     async initialize() {
         try {
             const response = await fetch('https://dog.ceo/api/breeds/list/all');
+            if (!response.ok) {
+                throw new Error('api');
+            }
             const data = await response.json();
             this.allBreeds = Object.keys(data.message);
             this.dailyBreeds = this.generateDailyBreeds();
@@ -64,18 +73,35 @@ class BarkleGame {
                 const modal = document.getElementById('completion-modal');
                 modal.style.display = 'flex';
                 
-                // Update modal content to include score
+                // Check if yesterday's game has been played
+                const yesterdayPlayed = localStorage.getItem('yesterdayPlayed') === 'true';
+                
+                // Update modal content to include score and option to play yesterday's game (if not played)
                 const modalContent = document.querySelector('.modal-content');
                 modalContent.innerHTML = `
                     <h2>🐕 All Done for Today! 🐕</h2>
                     <p>Score: ${correctGuesses}/${this.MAX_ATTEMPTS}</p>
                     <p>Come back tomorrow for more Barkle!</p>
                     <button id="share-results-btn" class="option-btn">Share Results</button>
+                    ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
                 `;
+                
+                // Store reference to 'this' for event handlers
+                const self = this;
                 
                 // Set up share button
                 const shareBtn = document.getElementById('share-results-btn');
-                shareBtn.onclick = () => this.shareResults();
+                shareBtn.onclick = function() {
+                    self.shareResults();
+                };
+                
+                // Set up play yesterday button if not played
+                if (!yesterdayPlayed) {
+                    const playYesterdayBtn = document.getElementById('play-yesterday-btn');
+                    playYesterdayBtn.onclick = function() {
+                        self.playYesterday();
+                    };
+                }
             } else {
                 // Resume existing game or start new one
                 if (this.attempts.length > 0) {
@@ -90,6 +116,8 @@ class BarkleGame {
             this.updateStats();
         } catch (error) {
             console.error('Failed to fetch breeds:', error);
+            this.showError(this.errorMessages.api);
+            return false; // Indicate initialization failed
         }
     }
 
@@ -164,18 +192,35 @@ class BarkleGame {
             const modal = document.getElementById('completion-modal');
             modal.style.display = 'flex';
             
-            // Update modal content to include score
+            // Check if yesterday's game has been played
+            const yesterdayPlayed = localStorage.getItem('yesterdayPlayed') === 'true';
+            
+            // Update modal content to include score and option to play yesterday's game (if not played)
             const modalContent = document.querySelector('.modal-content');
             modalContent.innerHTML = `
                 <h2>🐕 All Done for Today! 🐕</h2>
                 <p>Score: ${correctGuesses}/${this.MAX_ATTEMPTS}</p>
                 <p>Come back tomorrow for more Barkle!</p>
                 <button id="share-results-btn" class="option-btn">Share Results</button>
+                ${!yesterdayPlayed ? '<button id="play-yesterday-btn" class="option-btn">Play Yesterday\'s Game</button>' : ''}
             `;
+            
+            // Store reference to 'this' for event handlers
+            const self = this;
             
             // Set up share button
             const shareBtn = document.getElementById('share-results-btn');
-            shareBtn.onclick = () => this.shareResults();
+            shareBtn.onclick = function() {
+                self.shareResults();
+            };
+            
+            // Set up play yesterday button if not played
+            if (!yesterdayPlayed) {
+                const playYesterdayBtn = document.getElementById('play-yesterday-btn');
+                playYesterdayBtn.onclick = function() {
+                    self.playYesterday();
+                };
+            }
         }
 
         this.saveGameState();
@@ -267,10 +312,17 @@ class BarkleGame {
             dogImage.classList.add('loading');
             
             const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
+            if (!imageResponse.ok) {
+                throw new Error('image');
+            }
             const imageData = await imageResponse.json();
             
             // Create new image object to preload
             const img = new Image();
+            img.onerror = () => {
+                this.showError(this.errorMessages.image);
+                dogImage.classList.remove('loading');
+            };
             img.onload = () => {
                 dogImage.src = imageData.message;
                 dogImage.classList.remove('loading');
@@ -297,15 +349,27 @@ class BarkleGame {
 
         } catch (error) {
             console.error('Failed to start new round:', error);
+            this.showError(this.errorMessages[error.message] || this.errorMessages.general);
         }
     }
 
     async loadSounds() {
         try {
-            this.happyBark = new Audio('happy_bark.mov');
-            this.sadBark = new Audio('angry_bark.mov');
+            this.happyBark = new Audio('happy_bark.mp3');
+            this.sadBark = new Audio('angry_bark.mp3');
+            
+            // Silently handle sound loading errors
+            this.happyBark.onerror = () => {
+                console.error('Failed to load happy bark sound');
+                this.happyBark.play = () => {}; // Replace with empty function
+            };
+            this.sadBark.onerror = () => {
+                console.error('Failed to load sad bark sound');
+                this.sadBark.play = () => {}; // Replace with empty function
+            };
         } catch (error) {
             console.error('Failed to load sounds:', error);
+            // Don't show error for sound loading failures
         }
     }
 
@@ -329,6 +393,86 @@ class BarkleGame {
         }
         
         return dailyBreeds;
+    }
+
+    playYesterday() {
+        // Mark yesterday's game as played
+        localStorage.setItem('yesterdayPlayed', 'true');
+        
+        // Log current breeds before changing
+        console.log('Today\'s breeds:', this.dailyBreeds);
+        
+        // Set the date to yesterday
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        console.log('Yesterday\'s date:', yesterday.toDateString());
+        
+        // Generate yesterday's seed
+        const dateHash = (yesterday.getFullYear() * 31 + 
+                         yesterday.getMonth() * 12 + 
+                         yesterday.getDate()) * 2654435761;
+        const oldSeed = this.todaysSeed;
+        this.todaysSeed = Math.abs(dateHash) % 2147483647;
+        
+        console.log('Today\'s seed:', oldSeed);
+        console.log('Yesterday\'s seed:', this.todaysSeed);
+        
+        // Generate yesterday's breeds
+        this.dailyBreeds = this.generateDailyBreeds();
+        console.log('Yesterday\'s breeds:', this.dailyBreeds);
+        
+        // Reset game state for yesterday's game
+        this.score = 0;
+        this.attempts = [];
+        this.gameOver = false;
+        
+        // Clear localStorage stats for yesterday's game
+        localStorage.setItem('gamesPlayed', '0');
+        localStorage.setItem('gamesWon', '0');
+        localStorage.setItem('currentStreak', '0');
+        localStorage.removeItem('barkleState');
+        
+        // Hide the completion modal
+        const modal = document.getElementById('completion-modal');
+        modal.style.display = 'none';
+        
+        // Clear the attempts history display
+        const attemptsDiv = document.getElementById('attempts-history');
+        if (attemptsDiv) {
+            attemptsDiv.innerHTML = '';
+        }
+        
+        // Reset score display
+        const scoreElement = document.getElementById('score');
+        if (scoreElement) {
+            scoreElement.textContent = '0';
+        }
+        
+        // Reset stats display
+        this.updateStats();
+        
+        // Start the game for yesterday
+        this.newRound();
+    }
+
+    showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <div class="error-content">
+                <p>🐕 ${message} 🐕</p>
+            </div>
+        `;
+        document.body.appendChild(errorDiv);
+        document.body.classList.add('modal-open');  // Add class to blur background
+    }
+
+    closeError() {
+        const errorDiv = document.querySelector('.error-message');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+        document.body.classList.remove('modal-open');  // Remove blur effect
     }
 }
 

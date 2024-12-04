@@ -17,19 +17,21 @@
     <!-- End Google Analytics -->
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="game-content">
-            <div class="container">
-                <h1>Barkle 🐕</h1>
-                <div class="score">Score: <span id="score">0</span></div>
-                <div class="image-container">
-                    <img id="dog-image" class="dog-image" alt="Dog breed to guess">
+    <div class="game-content-wrapper">
+        <div class="game-wrapper">
+            <div class="game-content">
+                <div class="container">
+                    <h1>Barkle 🐕</h1>
+                    <div class="score">Score: <span id="score">0</span></div>
+                    <div class="image-container">
+                        <img id="dog-image" class="dog-image" alt="Dog breed to guess">
+                    </div>
+                    <div id="buttons" class="buttons-container"></div>
+                    <div id="feedback" class="feedback"></div>
+                    <div id="stats" class="stats"></div>
                 </div>
-                <div id="buttons" class="buttons-container"></div>
-                <div id="feedback" class="feedback"></div>
-                <div id="stats" class="stats"></div>
+                <div class="attempts-history" id="attempts-history"></div>
             </div>
-            <div class="attempts-history" id="attempts-history"></div>
         </div>
     </div>
     <div id="completion-modal" class="modal" style="display: none;">
