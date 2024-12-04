@@ -15,6 +15,9 @@
       gtag('config', 'G-T2QE7KJYGT');
     </script>
     <!-- End Google Analytics -->
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3285364417620678"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="game-content-wrapper">
@@ -25,6 +28,7 @@
                     <div class="score">Score: <span id="score">0</span></div>
                     <div class="image-container">
                         <img id="dog-image" class="dog-image" alt="Dog breed to guess">
+                        <div id="link-container" class="link-container"></div>
                     </div>
                     <div id="buttons" class="buttons-container"></div>
                     <div id="feedback" class="feedback"></div>
@@ -34,6 +38,20 @@
             </div>
         </div>
     </div>
+    
+    <!-- Ad Container -->
+    <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-3285364417620678"
+             data-ad-slot="YOUR-AD-SLOT-ID"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
     <div id="completion-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>🐕 All Done for Today! 🐕</h2>

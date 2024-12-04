@@ -10,6 +10,7 @@ class BarkleGame {
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
         this.todaysSeed = this.generateDailySeed();
+        this.gameDate = new Date();  // Move this before initialize()
         this.loadGameState();   // Load saved state for today
         this.loadSounds();
         this.initialize();
@@ -39,10 +40,12 @@ class BarkleGame {
             this.score = 0;
             this.attempts = [];
             this.gameOver = false;
+            this.gameDate = new Date();  // Reset to today
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
             this.gameOver = savedState.gameOver || false;
+            this.gameDate = savedState.gameDate ? new Date(savedState.gameDate) : new Date();  // Load saved date
         }
     }
 
@@ -276,7 +279,7 @@ class BarkleGame {
 
         const attemptsText = this.attempts.map(a => a.correct ? '🟩' : '⬜').join('');
         
-        const text = `Barkle (${new Date().toDateString()})\n\n${attemptsText}\n${correctGuesses}/${totalGuesses} correct\n\n${dogArt}`;
+        const text = `Barkle (${this.gameDate.toDateString()})\n\n${attemptsText}\n${correctGuesses}/${totalGuesses} correct\n\n${dogArt}\n\nFetch your own pups at https://barkle.netlify.app`;
         
         if (navigator.share) {
             navigator.share({
@@ -399,27 +402,19 @@ class BarkleGame {
         // Mark yesterday's game as played
         localStorage.setItem('yesterdayPlayed', 'true');
         
-        // Log current breeds before changing
-        console.log('Today\'s breeds:', this.dailyBreeds);
-        
-        // Set the date to yesterday
+        // Set the date to yesterday and store it
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        console.log('Yesterday\'s date:', yesterday.toDateString());
+        this.gameDate = yesterday;  // Store yesterday's date
         
         // Generate yesterday's seed
         const dateHash = (yesterday.getFullYear() * 31 + 
                          yesterday.getMonth() * 12 + 
                          yesterday.getDate()) * 2654435761;
-        const oldSeed = this.todaysSeed;
         this.todaysSeed = Math.abs(dateHash) % 2147483647;
-        
-        console.log('Today\'s seed:', oldSeed);
-        console.log('Yesterday\'s seed:', this.todaysSeed);
         
         // Generate yesterday's breeds
         this.dailyBreeds = this.generateDailyBreeds();
-        console.log('Yesterday\'s breeds:', this.dailyBreeds);
         
         // Reset game state for yesterday's game
         this.score = 0;
@@ -450,6 +445,12 @@ class BarkleGame {
         
         // Reset stats display
         this.updateStats();
+        
+        // Update the date display
+        const dateElement = document.getElementById('date-display');
+        if (dateElement) {
+            dateElement.textContent = `Barkle (${yesterday.toDateString()})`;
+        }
         
         // Start the game for yesterday
         this.newRound();

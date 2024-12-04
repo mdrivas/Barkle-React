@@ -691,13 +691,17 @@ body.modal-open .game-content-wrapper {
     backdrop-filter: none;
 }
 
-.error-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.link-container {
+    margin-top: 10px;
+    font-size: 14px;
 }
 
-.error-content p {
-    margin: 0;
-    line-height: 1.4;
+.barkle-link {
+    color: #888;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.barkle-link:hover {
+    color: #fff;
 }
