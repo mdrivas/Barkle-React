@@ -416,6 +416,19 @@
                 padding-bottom: 80px;
             }
         }
+
+        html, body {
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            overflow-y: hidden; /* Disable vertical scrolling */
+            height: 100%; /* Ensure full height */
+        }
+
+        @media (max-width: 768px) {
+            .landing-container {
+                padding-top: 20px; /* Add padding to move content down */
+                min-height: 100vh; /* Ensure it fills the viewport */
+            }
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
