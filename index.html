@@ -22,7 +22,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding-bottom: 50px;
         }
 
         .landing-logo {
@@ -413,7 +412,13 @@
             }
             
             .landing-container {
-                padding-bottom: 80px;
+                padding-top: 60px;
+                padding-bottom: 0;
+                justify-content: flex-start;
+            }
+
+            .logo-container {
+                margin-top: 20px;
             }
         }
 
@@ -425,8 +430,49 @@
 
         @media (max-width: 768px) {
             .landing-container {
-                padding-top: 20px; /* Add padding to move content down */
-                min-height: 100vh; /* Ensure it fills the viewport */
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 20px 20px 60px;
+            }
+
+            .logo-container {
+                width: 150px;
+                height: 150px;
+                margin: 0 auto 15px;
+            }
+
+            .landing-logo {
+                font-size: 2rem;
+                margin-bottom: 15px;
+            }
+
+            .landing-description {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+
+            .button-group {
+                gap: 10px;
+            }
+
+            .play-button, .leaderboard-button {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+
+            .total-games-played {
+                margin: 15px 0;
+                font-size: 0.9rem;
+            }
+
+            .ad-container-mobile {
+                margin: 10px auto 0;
+                position: fixed;
+                bottom: 40px;
+                left: 50%;
+                transform: translateX(-50%);
             }
         }
     </style>
