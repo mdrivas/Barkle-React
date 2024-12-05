@@ -254,6 +254,65 @@
             border-radius: 5px;
             align-items: center;
         }
+
+        .score-entry.top-1 {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 25%, rgba(184, 134, 11, 0.3) 25%, rgba(255, 215, 0, 0.3) 50%, rgba(184, 134, 11, 0.3) 50%, rgba(255, 215, 0, 0.3) 75%, rgba(184, 134, 11, 0.3) 75%, rgba(255, 215, 0, 0.3));
+            background-size: 200% 200%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            animation: medalAnimation 12s linear infinite;
+            border: 1px solid #ffd700;
+            position: relative;
+        }
+
+        .score-entry.top-2 {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.3) 25%, rgba(128, 128, 128, 0.3) 25%, rgba(192, 192, 192, 0.3) 50%, rgba(128, 128, 128, 0.3) 50%, rgba(192, 192, 192, 0.3) 75%, rgba(128, 128, 128, 0.3) 75%, rgba(192, 192, 192, 0.3));
+            background-size: 200% 200%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            animation: medalAnimation 12s linear infinite;
+            border: 1px solid #c0c0c0;
+            position: relative;
+        }
+
+        .score-entry.top-3 {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.3) 25%, rgba(139, 69, 19, 0.3) 25%, rgba(205, 127, 50, 0.3) 50%, rgba(139, 69, 19, 0.3) 50%, rgba(205, 127, 50, 0.3) 75%, rgba(139, 69, 19, 0.3) 75%, rgba(205, 127, 50, 0.3));
+            background-size: 200% 200%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            animation: medalAnimation 12s linear infinite;
+            border: 1px solid #cd7f32;
+            position: relative;
+        }
+
+        @keyframes medalAnimation {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 200% 200%;
+            }
+        }
+
+        @keyframes float {
+            0%, 50%, 100% {
+                transform: translateY(0);
+            }
+        }
+
+        .trophy {
+            display: none;
+        }
+
+        .score-entry.top-1 .score-rank,
+        .score-entry.top-2 .score-rank,
+        .score-entry.top-3 .score-rank {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .score-entry.top-1 .score-name,
+        .score-entry.top-2 .score-name,
+        .score-entry.top-3 .score-name {
+            font-weight: 600;
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
@@ -380,6 +439,12 @@
 
                 const entry = document.createElement('div');
                 entry.className = 'score-entry';
+                
+                // Add special classes for top 3 without trophies
+                if (index === 0) entry.className += ' top-1';
+                else if (index === 1) entry.className += ' top-2';
+                else if (index === 2) entry.className += ' top-3';
+
                 entry.innerHTML = `
                     <span class="score-rank">#${index + 1}</span>
                     <span class="score-name">${score.name}</span>
