@@ -23,6 +23,7 @@
             justify-content: center;
             align-items: center;
             padding-bottom: 50px;
+            overflow: hidden; /* Prevent vertical scrolling */
         }
 
         .landing-logo {
@@ -97,32 +98,7 @@
         }
 
         footer {
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        footer a {
-            color: #538d4e;
-            text-decoration: none;
-            margin: 0 5px;
-            transition: color 0.3s ease;
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        footer a:hover {
-            color: #66aa61;
+            display: none;
         }
 
         .button-group {
@@ -360,6 +336,34 @@
                 font-size: 0.7rem;
             }
         }
+
+        /* Add styles for the top-right links */
+        .top-right-links {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .top-right-links a {
+            color: #538d4e;
+            text-decoration: none;
+            margin: 0 5px;
+            transition: color 0.3s ease;
+        }
+
+        .top-right-links a:hover {
+            color: #66aa61;
+        }
+
+        /* Ensure no vertical scrolling */
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
@@ -385,6 +389,10 @@
     </script>
 </head>
 <body>
+    <div class="top-right-links">
+        <a href="/privacy.html">Privacy Policy</a> |
+        <a href="/terms.html">Terms of Service</a>
+    </div>
     <div class="page-container">
         <div class="landing-container">
             <div class="logo-container">
