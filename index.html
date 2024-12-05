@@ -23,7 +23,6 @@
             justify-content: center;
             align-items: center;
             padding-bottom: 50px;
-            overflow: hidden; /* Prevent vertical scrolling */
         }
 
         .landing-logo {
@@ -98,7 +97,32 @@
         }
 
         footer {
-            display: none;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        footer a {
+            color: #538d4e;
+            text-decoration: none;
+            margin: 0 5px;
+            transition: color 0.3s ease;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        footer a:hover {
+            color: #66aa61;
         }
 
         .button-group {
@@ -317,14 +341,52 @@
 
         /* Update styles for the total games played text */
         .total-games-played {
-            background: rgba(200, 200, 200, 0.2); /* Subtle gray background */
+            background: linear-gradient(45deg, #8B4513, #DEB887, #8B4513);  /* Saddle Brown to Burly Wood */
+            background-size: 200% 200%;
             color: #ffffff;
-            padding: 5px 15px;
-            border-radius: 10px;
+            padding: 10px 20px;
+            border-radius: 15px;
             font-size: 1rem;
             font-weight: bold;
-            margin-top: 10px; /* Position right under the buttons */
+            margin-top: 20px;
             margin-bottom: 40px;
+            text-align: center;
+            animation: gradientBG 5s ease infinite;
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);  /* Saddle Brown shadow */
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .total-games-played:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(139, 69, 19, 0.5);  /* Darker shadow on hover */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .top-right-links {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+
+        .top-right-links a {
+            color: #538d4e;
+            text-decoration: none;
+            margin: 0 5px;
+            transition: color 0.3s ease;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .top-right-links a:hover {
+            color: #66aa61;
         }
 
         @media (max-width: 768px) {
@@ -337,32 +399,22 @@
             }
         }
 
-        /* Add styles for the top-right links */
-        .top-right-links {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-
-        .top-right-links a {
-            color: #538d4e;
-            text-decoration: none;
-            margin: 0 5px;
-            transition: color 0.3s ease;
-        }
-
-        .top-right-links a:hover {
-            color: #66aa61;
-        }
-
-        /* Ensure no vertical scrolling */
-        body, html {
-            height: 100%;
-            margin: 0;
+        .ad-container-mobile {
+            margin: 20px auto;
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
             overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .ad-container-mobile {
+                margin-bottom: 60px;
+            }
+            
+            .landing-container {
+                padding-bottom: 80px;
+            }
         }
     </style>
     <!-- Google Analytics -->
@@ -408,6 +460,15 @@
                 <button class="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button>
             </div>
             <div id="totalGamesPlayed" class="total-games-played"></div>
+
+            <!-- Remove the old ad-container and keep only the mobile banner -->
+            <div class="ad-container-mobile">
+                <iframe 
+                    data-aa='2368927' 
+                    src='//ad.a-ads.com/2368927?size=320x50' 
+                    style='width:320px; height:50px; border:0px; padding:0; overflow:hidden; background-color: transparent;'>
+                </iframe>
+            </div>
         </div>
     </div>
     <div id="leaderboardModal" class="modal">
@@ -417,10 +478,6 @@
             <div id="leaderboardContent"></div>
         </div>
     </div>
-    <footer>
-        <a href="/privacy.html">Privacy Policy</a> |
-        <a href="/terms.html">Terms of Service</a>
-    </footer>
     <script>
         function showLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
@@ -550,7 +607,9 @@
                 .then((snapshot) => {
                     const totalGames = snapshot.numChildren();
                     const totalGamesElement = document.getElementById('totalGamesPlayed');
-                    totalGamesElement.innerHTML = ` ${totalGames} games played today`;
+                    totalGamesElement.innerHTML = `
+                         🐾 ${totalGames.toLocaleString()} Games Played Today 🐾 
+                    `;
                 })
                 .catch((error) => {
                     console.error('Error loading total games:', error);
