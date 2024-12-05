@@ -2,9 +2,10 @@ body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #121213;
+    background-color: #1e1e1e;
     color: #ffffff;
     min-height: 100vh;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
@@ -22,28 +23,24 @@ body {
 .container {
     width: 500px;
     text-align: center;
-    background-color: #121213;
-    padding: 20px;
+    background-color: #1e1e1e;
+    padding: 25px 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
     position: relative;
-    border: 1px solid transparent;
-    background: linear-gradient(#121213, #121213) padding-box,
-                linear-gradient(45deg, #3a3a3c, #2a2a2b) border-box;
-    border-radius: 12px;
+    border-radius: 20px;
+    box-shadow: 10px 10px 20px #141414, -10px -10px 20px #282828;
 }
 
 h1 {
     margin: 0;
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    color: #ffffff;
     position: relative;
 }
 
@@ -63,18 +60,20 @@ h1:hover::after {
 }
 
 .score {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     margin: 5px 0;
+    color: #ffffff;
 }
 
 .dog-image {
     width: 100%;
-    height: 300px;
-    object-fit: contain;
+    height: 250px;
+    object-fit: cover;
     background: #1a1a1b;
-    border-radius: 8px;
+    border-radius: 16px;
     margin: 10px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .dog-image.loading::before {
@@ -108,7 +107,7 @@ h1:hover::after {
 .buttons-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 15px;
     width: 100%;
     max-width: 400px;
     margin: 5px 0;
@@ -116,25 +115,24 @@ h1:hover::after {
 
 .option-btn {
     width: 100%;
-    padding: 16px 20px;
-    font-size: 14px;
+    padding: 15px 24px;
+    font-size: 16px;
     cursor: pointer;
     border: none;
     background-color: #2a2a2b;
     color: #ffffff;
-    border-radius: 8px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    border-radius: 12px;
+    transition: all 0.3s ease;
     text-transform: uppercase;
-    font-weight: bold;
+    font-weight: 600;
     letter-spacing: 0.05em;
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .option-btn:hover {
     background-color: #3a3a3c;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .option-btn:active {
@@ -152,11 +150,14 @@ h1:hover::after {
 }
 
 .feedback {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
-    min-height: 24px;
+    min-height: 20px;
     margin: 0;
-    padding: 8px 16px;
+    padding: 8px 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    padding: 10px 20px;
     border-radius: 6px;
     transition: all 0.3s ease;
     letter-spacing: 0.02em;
@@ -165,12 +166,10 @@ h1:hover::after {
 
 .feedback.correct {
     color: #538d4e;
-    background: rgba(83, 141, 78, 0.1);
 }
 
 .feedback.incorrect {
     color: #ff4d4d;
-    background: rgba(255, 77, 77, 0.1);
 }
 
 .stats-container {
@@ -178,10 +177,11 @@ h1:hover::after {
     max-width: 400px;
     display: flex;
     justify-content: space-between;
-    padding: 12px 20px;
-    background: #1a1a1b;
-    border-radius: 8px;
-    border: 1px solid #3a3a3c;
+    padding: 8px 20px;
+    background: rgba(26, 26, 27, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(58, 58, 60, 0.4);
     font-size: 14px;
     margin: 5px auto;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -215,21 +215,22 @@ h1:hover::after {
 }
 
 .attempts-history {
-    position: absolute;
+    position: fixed;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
     width: 160px;
-    height: 400px;
+    height: 350px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow-y: auto;
     padding: 20px;
     border-radius: 12px;
-    background: #1a1a1b;
-    border: 1px solid #3a3a3c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: rgba(26, 26, 27, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 58, 60, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     scrollbar-width: thin;
     scrollbar-color: #3a3a3c #1a1a1b;
 }
@@ -249,15 +250,15 @@ h1:hover::after {
 }
 
 .attempt {
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     text-transform: uppercase;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 13px;
     text-align: center;
     margin: 2px 0;
-    transition: all 0.2s ease;
-    letter-spacing: 0.05em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.06em;
     animation: slideIn 0.3s ease;
 }
 
@@ -406,7 +407,6 @@ h1:hover::after {
 /* Gradient border for the game container */
 .container {
     position: relative;
-    border: 1px solid transparent;
     background: linear-gradient(#121213, #121213) padding-box,
                 linear-gradient(45deg, #3a3a3c, #2a2a2b) border-box;
     border-radius: 12px;
@@ -481,12 +481,13 @@ h1:hover::after {
 .image-container {
     width: 100%;
     height: 300px;
-    background: #1a1a1b;
+    background: linear-gradient(145deg, #1a1a1b, #222223);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
+    border-radius: 16px;
     overflow: hidden;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive styles for smaller screens */
@@ -508,10 +509,12 @@ h1:hover::after {
     }
 
     .container {
-        width: 95%;
-        padding: 10px;
-        margin: 0;
-        order: 1;
+        width: 90%;
+        max-width: none;
+        padding: 20px;
+        margin: 10px auto;
+        background: #121213;
+        border: none;
     }
 
     .attempts-history {
