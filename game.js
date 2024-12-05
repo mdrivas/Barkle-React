@@ -10,9 +10,26 @@ class BarkleGame {
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
 
-        // Initialize game date first
+        // Initialize game date first and check if it's current
         const savedGameDate = localStorage.getItem('gameDate');
-        this.gameDate = savedGameDate ? new Date(savedGameDate) : new Date();
+        const today = new Date();
+        
+        // Clear state if it's a new day
+        if (savedGameDate) {
+            const savedDate = new Date(savedGameDate);
+            if (savedDate.toDateString() !== today.toDateString()) {
+                // It's a new day, clear ALL previous game state
+                this.clearGameState();
+                this.gameDate = today;
+            } else {
+                this.gameDate = savedDate;
+            }
+        } else {
+            this.gameDate = today;
+        }
+        
+        // Save current game date
+        localStorage.setItem('gameDate', this.gameDate.toDateString());
         
         // Generate seed after date is initialized
         this.todaysSeed = this.generateSeedFromDate(this.gameDate);
@@ -34,6 +51,60 @@ class BarkleGame {
 
         // Initialize streak tracking
         this.initializeStreak();
+
+        const todayString = today.toDateString();
+        
+        // Initialize localStorage variables if they don't exist
+        if (!localStorage.getItem('gameDate')) {
+            localStorage.setItem('gameDate', todayString);
+        }
+        if (!localStorage.getItem('lastPlayedDate')) {
+            localStorage.setItem('lastPlayedDate', todayString);
+        }
+        if (!localStorage.getItem('yesterdayPlayed')) {
+            localStorage.setItem('yesterdayPlayed', 'false');
+        }
+
+        // Check if it's a new day and reset yesterdayPlayed
+        const lastPlayedDate = localStorage.getItem('lastPlayedDate');
+        if (lastPlayedDate !== todayString) {
+            // Only reset yesterdayPlayed at the start of a new day
+            localStorage.setItem('yesterdayPlayed', 'false');
+            localStorage.setItem('lastPlayedDate', todayString);
+        }
+
+        // Check if we're returning from yesterday's game
+        const todayState = JSON.parse(localStorage.getItem('todayState') || 'null');
+        if (todayState && todayState.played && todayState.gameDate === todayString) {
+            // Restore today's game state
+            if (todayState.barkleState) {
+                localStorage.setItem('barkleState', todayState.barkleState);
+                // Parse the state to check if game is completed
+                const savedState = JSON.parse(todayState.barkleState);
+                if (savedState.gameOver) {
+                    this.gameOver = true;
+                    this.attempts = savedState.attempts || [];
+                    this.score = savedState.score || 0;
+                }
+            }
+            if (todayState.gameDate) {
+                localStorage.setItem('gameDate', todayState.gameDate);
+            }
+        }
+
+        // Check if today's game is already completed
+        const completedState = JSON.parse(localStorage.getItem('barkleState') || '{}');
+        if (completedState.gameOver && completedState.gameDate === todayString) {
+            // User has already completed today's game
+            this.gameOver = true;
+            this.attempts = completedState.attempts || [];
+            this.score = completedState.score || 0;
+            
+            // Skip normal initialization and show completion modal
+            this.loadSounds();
+            this.initialize();
+            return;
+        }
     }
 
     generateDeviceId() {
@@ -55,7 +126,7 @@ class BarkleGame {
                 <p>What should we call you?</p>
                 <input type="text" 
                        id="player-name" 
-                       maxlength="20" 
+                       maxlength="12"  <!-- Limit input to 12 characters -->
                        placeholder="Your name"
                        class="name-input"
                        value="${this.playerName || ''}">  <!-- Pre-fill if exists -->
@@ -92,6 +163,10 @@ class BarkleGame {
         const saveName = () => {
             let name = input.value.trim();
             if (name === '') name = 'Anonymous';
+            if (this.containsBadWords(name)) {
+                alert('Please choose a different name.');
+                return;
+            }
             this.playerName = name;  // Store in class
             localStorage.setItem('playerName', name);  // Store in localStorage
             modal.remove();
@@ -101,6 +176,37 @@ class BarkleGame {
         input.onkeypress = (e) => {
             if (e.key === 'Enter') saveName();
         };
+    }
+
+    containsBadWords(name) {
+        const badWords = ['bitch', 'nig', 'fuck']; // Add more bad words as needed
+        const lowerCaseName = name.toLowerCase();
+        
+        // Split the name into words and check each word
+        const words = lowerCaseName.split(/[\s-_]+/);
+        
+        // Check if any complete word matches a bad word
+        for (const word of words) {
+            // Remove any non-letter characters
+            const cleanWord = word.replace(/[^a-z]/g, '');
+            if (badWords.includes(cleanWord)) {
+                return true;
+            }
+            
+            // Also check for common number substitutions
+            const numberSubstitutions = cleanWord
+                .replace(/1/g, 'i')
+                .replace(/3/g, 'e')
+                .replace(/4/g, 'a')
+                .replace(/5/g, 's')
+                .replace(/0/g, 'o');
+                
+            if (badWords.includes(numberSubstitutions)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     generateSeedFromDate(date) {
@@ -119,22 +225,20 @@ class BarkleGame {
 
     loadGameState() {
         const savedState = JSON.parse(localStorage.getItem('barkleState') || '{}');
-        const currentGameDate = this.gameDate.toDateString();
+        const today = new Date();
         
-        // Reset if it's a different game date than the saved state
-        if (savedState.gameDate !== currentGameDate) {
-            this.score = 0;
-            this.attempts = [];
-            this.gameOver = false;
-            this.dailyBreeds = null;  // Reset daily breeds
+        // Always reset if it's a new day
+        if (savedState.gameDate !== today.toDateString()) {
+            this.clearGameState();
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
             this.gameOver = savedState.gameOver || false;
-            this.dailyBreeds = savedState.dailyBreeds || null;  // Restore daily breeds
+            this.dailyBreeds = savedState.dailyBreeds || null;
+            this.currentBreed = this.dailyBreeds ? this.dailyBreeds[this.attempts.length] : null;
         }
     }
-
+    
     saveGameState() {
         const gameState = {
             gameDate: this.gameDate.toDateString(),
@@ -142,7 +246,7 @@ class BarkleGame {
             attempts: this.attempts,
             gameOver: this.gameOver,
             currentBreed: this.currentBreed,
-            dailyBreeds: this.dailyBreeds  // Save daily breeds
+            dailyBreeds: this.dailyBreeds  // Save the daily breeds array
         };
         localStorage.setItem('barkleState', JSON.stringify(gameState));
     }
@@ -464,15 +568,20 @@ class BarkleGame {
             // Use seeded shuffle
             options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
 
-            // Get random dog image with loading state
+            // Get all images for the breed first
             const dogImage = document.getElementById('dog-image');
             dogImage.classList.add('loading');
             
-            const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
-            if (!imageResponse.ok) {
+            const allImagesResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images`);
+            if (!allImagesResponse.ok) {
                 throw new Error('image');
             }
-            const imageData = await imageResponse.json();
+            const allImagesData = await allImagesResponse.json();
+            const allImages = allImagesData.message;
+            
+            // Use seeded random to select the same image for all users
+            const imageIndex = Math.floor(this.seededRandom(this.todaysSeed + currentAttempt * 1000) * allImages.length);
+            const selectedImage = allImages[imageIndex];
             
             // Create new image object to preload
             const img = new Image();
@@ -481,10 +590,10 @@ class BarkleGame {
                 dogImage.classList.remove('loading');
             };
             img.onload = () => {
-                dogImage.src = imageData.message;
+                dogImage.src = selectedImage;
                 dogImage.classList.remove('loading');
             };
-            img.src = imageData.message;
+            img.src = selectedImage;
 
             // Create buttons
             const buttonsContainer = document.getElementById('buttons');
@@ -559,13 +668,22 @@ class BarkleGame {
     }
 
     playYesterday() {
-        // Clear existing game state first
-        localStorage.removeItem('barkleState');
+        // Store today's game state before switching to yesterday's game
+        const todayState = {
+            barkleState: localStorage.getItem('barkleState'),
+            gameDate: new Date().toDateString(),
+            played: true
+        };
+        localStorage.setItem('todayState', JSON.stringify(todayState));
         
-        // Mark yesterday's game as played
+        // Clear only the current game state
+        localStorage.removeItem('barkleState');
+        localStorage.removeItem('gameDate');
+        
+        // Mark yesterday's game as played (persist this across page reloads)
         localStorage.setItem('yesterdayPlayed', 'true');
         
-        // Set the date to yesterday and store it
+        // Set the date to yesterday
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         this.gameDate = yesterday;
@@ -679,12 +797,8 @@ class BarkleGame {
             return Promise.resolve();
         }
     }
-
     async resumeGame() {
         try {
-            // Get the saved state
-            const savedState = JSON.parse(localStorage.getItem('barkleState') || '{}');
-            
             // Update the score display
             const scoreElement = document.getElementById('score');
             if (scoreElement) {
@@ -694,61 +808,61 @@ class BarkleGame {
             // Update attempts history
             this.updateDisplay();
             
-            // If there was a current breed saved, show that image and options
-            if (savedState.currentBreed) {
-                this.currentBreed = savedState.currentBreed;
-                const currentAttempt = this.attempts.length;
-                
-                // Get the image for the current breed
-                const dogImage = document.getElementById('dog-image');
-                dogImage.classList.add('loading');
-                
-                const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
-                if (!imageResponse.ok) {
-                    throw new Error('image');
-                }
-                const imageData = await imageResponse.json();
-                
-                // Load the image
-                const img = new Image();
-                img.onerror = () => {
-                    this.showError(this.errorMessages.image);
-                    dogImage.classList.remove('loading');
-                };
-                img.onload = () => {
-                    dogImage.src = imageData.message;
-                    dogImage.classList.remove('loading');
-                };
-                img.src = imageData.message;
-                
-                // Recreate the options buttons using same seed as before
-                const options = [this.currentBreed];
-                let wrongSeed = this.todaysSeed + (currentAttempt * 100);
-                
-                while (options.length < 4) {
-                    wrongSeed++;
-                    const wrongIndex = Math.floor(this.seededRandom(wrongSeed) * this.allBreeds.length);
-                    const wrong = this.allBreeds[wrongIndex];
-                    if (!options.includes(wrong)) options.push(wrong);
-                }
-                
-                // Use seeded shuffle
-                options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
-                
-                // Create buttons
-                const buttonsContainer = document.getElementById('buttons');
-                buttonsContainer.innerHTML = '';
-                options.forEach(breed => {
-                    const button = document.createElement('button');
-                    button.textContent = breed.charAt(0).toUpperCase() + breed.slice(1);
-                    button.className = 'option-btn';
-                    button.onclick = () => this.checkAnswer(breed);
-                    buttonsContainer.appendChild(button);
-                });
-            } else {
-                // If no current breed was saved, start a new round
-                await this.newRound();
+            // Get the current attempt number and corresponding breed
+            const currentAttempt = this.attempts.length;
+            this.currentBreed = this.dailyBreeds[currentAttempt];
+            
+            // Get all images for the breed
+            const dogImage = document.getElementById('dog-image');
+            dogImage.classList.add('loading');
+            
+            const allImagesResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images`);
+            if (!allImagesResponse.ok) {
+                throw new Error('image');
             }
+            const allImagesData = await allImagesResponse.json();
+            const allImages = allImagesData.message;
+            
+            // Use seeded random to select the same image for all users
+            const imageIndex = Math.floor(this.seededRandom(this.todaysSeed + currentAttempt * 1000) * allImages.length);
+            const selectedImage = allImages[imageIndex];
+            
+            // Load the image
+            const img = new Image();
+            img.onerror = () => {
+                this.showError(this.errorMessages.image);
+                dogImage.classList.remove('loading');
+            };
+            img.onload = () => {
+                dogImage.src = selectedImage;
+                dogImage.classList.remove('loading');
+            };
+            img.src = selectedImage;
+            
+            // Create the options buttons using same seed as before
+            const options = [this.currentBreed];
+            let wrongSeed = this.todaysSeed + (currentAttempt * 100);
+            
+            while (options.length < 4) {
+                wrongSeed++;
+                const wrongIndex = Math.floor(this.seededRandom(wrongSeed) * this.allBreeds.length);
+                const wrong = this.allBreeds[wrongIndex];
+                if (!options.includes(wrong)) options.push(wrong);
+            }
+            
+            // Use seeded shuffle
+            options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
+            
+            // Create buttons
+            const buttonsContainer = document.getElementById('buttons');
+            buttonsContainer.innerHTML = '';
+            options.forEach(breed => {
+                const button = document.createElement('button');
+                button.textContent = breed.charAt(0).toUpperCase() + breed.slice(1);
+                button.className = 'option-btn';
+                button.onclick = () => this.checkAnswer(breed);
+                buttonsContainer.appendChild(button);
+            });
             
         } catch (error) {
             console.error('Failed to resume game:', error);
@@ -807,6 +921,16 @@ class BarkleGame {
             this.streak = 1;
             this.guessStreak = 0;
         }
+    }
+
+    clearGameState() {
+        localStorage.removeItem('barkleState');
+        localStorage.removeItem('gameDate');
+        // Don't remove yesterdayPlayed here
+        this.score = 0;
+        this.attempts = [];
+        this.gameOver = false;
+        this.dailyBreeds = null;
     }
 }
 

@@ -22,6 +22,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding-bottom: 50px;
         }
 
         .landing-logo {
@@ -97,12 +98,12 @@
 
         footer {
             text-align: center;
-            padding: 20px 0;
+            padding: 10px 0;
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             z-index: 1000;
@@ -114,8 +115,10 @@
         footer a {
             color: #538d4e;
             text-decoration: none;
-            margin: 0 10px;
+            margin: 0 5px;
             transition: color 0.3s ease;
+            font-size: 0.8rem;
+            opacity: 0.7;
         }
 
         footer a:hover {
@@ -125,7 +128,7 @@
         .button-group {
             display: flex;
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
         }
 
         .leaderboard-button {
@@ -189,13 +192,21 @@
 
         .score-entry {
             display: grid;
-            grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
-            gap: 10px;
-            padding: 10px;
+            grid-template-columns: 0.5fr 1.5fr 0.8fr 0.8fr 0.8fr;
+            gap: 5px;
+            padding: 8px;
             margin: 5px 0;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
             align-items: center;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .score-entry {
+                grid-template-columns: 0.5fr 1.2fr 0.7fr 0.7fr 0.7fr;
+                font-size: 0.8rem;
+            }
         }
 
         .score-rank {
@@ -313,6 +324,42 @@
         .score-entry.top-3 .score-name {
             font-weight: 600;
         }
+
+        /* Add these new styles */
+        .page-container {
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 1024px) {
+            .page-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* Update styles for the total games played text */
+        .total-games-played {
+            background: rgba(200, 200, 200, 0.2); /* Subtle gray background */
+            color: #ffffff;
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 10px; /* Position right under the buttons */
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            footer {
+                padding: 5px 0;
+            }
+            
+            footer a {
+                font-size: 0.7rem;
+            }
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
@@ -338,20 +385,22 @@
     </script>
 </head>
 <body>
-    <div class="landing-container">
-        <div class="logo-container">
-            <img src="logo.webp" alt="Barkle Logo" class="logo-image">
+    <div class="page-container">
+        <div class="landing-container">
+            <div class="logo-container">
+                <img src="logo.webp" alt="Barkle Logo" class="logo-image">
+            </div>
+            <div class="landing-logo">BARKLE</div>
+            <div class="landing-description">
+                5 chances to guess different dog breeds from their photos. 
+                A new set of pups every day!
+            </div>
+            <div class="button-group">
+                <button class="play-button" onclick="window.location.href='game.html'">Play</button>
+                <button class="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button>
+            </div>
+            <div id="totalGamesPlayed" class="total-games-played"></div>
         </div>
-        <div class="landing-logo">BARKLE</div>
-        <div class="landing-description">
-            5 chances to guess different dog breeds from their photos. 
-            A new set of pups every day!
-        </div>
-        <div class="button-group">
-            <button class="play-button" onclick="window.location.href='game.html'">Play</button>
-            <button class="leaderboard-button" onclick="showLeaderboard()">Leaderboard</button>
-        </div>
-        <div id="totalGamesPlayed" class="total-games-played" style="color: #ffffff; margin-top: -20px; margin-bottom: 20px;"></div>
     </div>
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
@@ -417,6 +466,31 @@
                 return;
             }
 
+            // Find user's score and add it to the top
+            const userScore = scores.find(score => score.deviceId === currentDeviceId);
+            if (userScore) {
+                const userRank = scores.findIndex(score => score.deviceId === currentDeviceId) + 1;
+                let userDogEmoji;
+                if (userScore.score === 5) userDogEmoji = '👑';
+                else if (userScore.score >= 4) userDogEmoji = '🐕‍🦺';
+                else if (userScore.score >= 3) userDogEmoji = '🐕';
+                else userDogEmoji = '🐶';
+
+                const yourScoreContainer = document.createElement('div');
+                yourScoreContainer.className = 'your-score-container';
+                yourScoreContainer.innerHTML = `
+                    <div class="your-score-header">Your Rank Today</div>
+                    <div class="your-score-entry">
+                        <span class="score-rank">#${userRank}</span>
+                        <span class="score-name">${userScore.name}</span>
+                        <span class="score-value">${userScore.score}/5 ${userDogEmoji}</span>
+                        <span class="score-guess-streak">${userScore.guessStreak || 0}🔥</span>
+                        <span class="score-daily-streak">${userScore.streak || 0}🔥</span>
+                    </div>
+                `;
+                leaderboardContent.appendChild(yourScoreContainer);
+            }
+
             // Add column headers
             const headers = document.createElement('div');
             headers.className = 'score-entry headers';
@@ -454,31 +528,6 @@
                 `;
                 leaderboardContent.appendChild(entry);
             });
-
-            // Find user's score and add it to the bottom
-            const userScore = scores.find(score => score.deviceId === currentDeviceId);
-            if (userScore) {
-                const userRank = scores.findIndex(score => score.deviceId === currentDeviceId) + 1;
-                let userDogEmoji;
-                if (userScore.score === 5) userDogEmoji = '👑';
-                else if (userScore.score >= 4) userDogEmoji = '🐕‍🦺';
-                else if (userScore.score >= 3) userDogEmoji = '🐕';
-                else userDogEmoji = '🐶';
-
-                const yourScoreContainer = document.createElement('div');
-                yourScoreContainer.className = 'your-score-container';
-                yourScoreContainer.innerHTML = `
-                    <div class="your-score-header">Your Rank Today</div>
-                    <div class="your-score-entry">
-                        <span class="score-rank">#${userRank}</span>
-                        <span class="score-name">${userScore.name}</span>
-                        <span class="score-value">${userScore.score}/5 ${userDogEmoji}</span>
-                        <span class="score-guess-streak">${userScore.guessStreak || 0}🔥</span>
-                        <span class="score-daily-streak">${userScore.streak || 0}🔥</span>
-                    </div>
-                `;
-                leaderboardContent.appendChild(yourScoreContainer);
-            }
         }
 
         // Add this new function to load total games on page load
