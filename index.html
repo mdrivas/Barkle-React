@@ -189,7 +189,7 @@
 
         .score-entry {
             display: grid;
-            grid-template-columns: 0.5fr 2fr 1fr 1fr;
+            grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
             gap: 10px;
             padding: 10px;
             margin: 5px 0;
@@ -211,12 +211,12 @@
             color: #ff9d00;
         }
 
-        .score-streak {
-            color: #ff9d00;
+        .score-guess-streak {
+            color: #538d4e;  /* Green color for guess streak */
         }
 
-        body.no-scroll {
-            overflow: hidden; /* Disable scrolling */
+        .score-daily-streak {
+            color: #ff9d00;  /* Gold color for daily streak */
         }
 
         .score-entry.headers {
@@ -224,6 +224,35 @@
             background: rgba(83, 141, 78, 0.2);
             border-bottom: 2px solid #538d4e;
             margin-bottom: 10px;
+        }
+
+        body.no-scroll {
+            overflow: hidden; /* Disable scrolling */
+        }
+
+        .your-score-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(83, 141, 78, 0.2);
+            border-radius: 10px;
+            border: 2px solid #538d4e;
+        }
+
+        .your-score-header {
+            font-size: 1.2em;
+            color: #538d4e;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .your-score-entry {
+            display: grid;
+            grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            align-items: center;
         }
     </style>
     <!-- Google Analytics -->
@@ -315,12 +344,13 @@
             const leaderboardContent = document.getElementById('leaderboardContent');
             leaderboardContent.innerHTML = '';
             
-            // Sort scores by highest score first, then by streak
+            const currentDeviceId = localStorage.getItem('deviceId');
+            
+            // Sort scores
             scores.sort((a, b) => {
-                if (b.score === a.score) {
-                    return b.streak - a.streak;
-                }
-                return b.score - a.score;
+                if (b.score !== a.score) return b.score - a.score;
+                if ((b.guessStreak || 0) !== (a.guessStreak || 0)) return (b.guessStreak || 0) - (a.guessStreak || 0);
+                return (b.streak || 0) - (a.streak || 0);
             });
             
             if (scores.length === 0) {
@@ -335,21 +365,18 @@
                 <span class="score-rank">Rank</span>
                 <span class="score-name">Player</span>
                 <span class="score-value">Score</span>
-                <span class="score-streak">Streak</span>
+                <span class="score-guess-streak">Guess Streak</span>
+                <span class="score-daily-streak">Daily Streak</span>
             `;
             leaderboardContent.appendChild(headers);
 
+            // Display all scores
             scores.forEach((score, index) => {
                 let dogEmoji;
-                if (score.score === 5) {
-                    dogEmoji = '👑';
-                } else if (score.score >= 4) {
-                    dogEmoji = '🐕‍🦺';
-                } else if (score.score >= 3) {
-                    dogEmoji = '🐕';
-                } else {
-                    dogEmoji = '🐶';
-                }
+                if (score.score === 5) dogEmoji = '👑';
+                else if (score.score >= 4) dogEmoji = '🐕‍🦺';
+                else if (score.score >= 3) dogEmoji = '🐕';
+                else dogEmoji = '🐶';
 
                 const entry = document.createElement('div');
                 entry.className = 'score-entry';
@@ -357,10 +384,36 @@
                     <span class="score-rank">#${index + 1}</span>
                     <span class="score-name">${score.name}</span>
                     <span class="score-value">${score.score}/5 ${dogEmoji}</span>
-                    <span class="score-streak">${score.streak || 0}🔥</span>
+                    <span class="score-guess-streak">${score.guessStreak || 0}🔥</span>
+                    <span class="score-daily-streak">${score.streak || 0}🔥</span>
                 `;
                 leaderboardContent.appendChild(entry);
             });
+
+            // Find user's score and add it to the bottom
+            const userScore = scores.find(score => score.deviceId === currentDeviceId);
+            if (userScore) {
+                const userRank = scores.findIndex(score => score.deviceId === currentDeviceId) + 1;
+                let userDogEmoji;
+                if (userScore.score === 5) userDogEmoji = '👑';
+                else if (userScore.score >= 4) userDogEmoji = '🐕‍🦺';
+                else if (userScore.score >= 3) userDogEmoji = '🐕';
+                else userDogEmoji = '🐶';
+
+                const yourScoreContainer = document.createElement('div');
+                yourScoreContainer.className = 'your-score-container';
+                yourScoreContainer.innerHTML = `
+                    <div class="your-score-header">Your Rank Today</div>
+                    <div class="your-score-entry">
+                        <span class="score-rank">#${userRank}</span>
+                        <span class="score-name">${userScore.name}</span>
+                        <span class="score-value">${userScore.score}/5 ${userDogEmoji}</span>
+                        <span class="score-guess-streak">${userScore.guessStreak || 0}🔥</span>
+                        <span class="score-daily-streak">${userScore.streak || 0}🔥</span>
+                    </div>
+                `;
+                leaderboardContent.appendChild(yourScoreContainer);
+            }
         }
 
         // Add this new function to load total games on page load

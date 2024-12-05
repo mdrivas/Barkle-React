@@ -9,11 +9,18 @@ class BarkleGame {
         this.MAX_ATTEMPTS = 5;  // Number of guesses allowed per day
         this.attempts = [];     // Track all guesses
         this.gameOver = false;
-        this.todaysSeed = this.generateDailySeed();
-        this.loadGameState();   // Load saved state for today
+
+        // Initialize game date first
+        const savedGameDate = localStorage.getItem('gameDate');
+        this.gameDate = savedGameDate ? new Date(savedGameDate) : new Date();
+        
+        // Generate seed after date is initialized
+        this.todaysSeed = this.generateSeedFromDate(this.gameDate);
+        
+        // Initialize remaining properties
+        this.loadGameState();
         this.loadSounds();
         this.initialize();
-        this.gameDate = new Date();  // Initialize with today's date
         
         // Get player name from localStorage or prompt for it
         this.playerName = localStorage.getItem('playerName');
@@ -96,11 +103,10 @@ class BarkleGame {
         };
     }
 
-    generateDailySeed() {
-        const today = new Date();
-        const dateHash = (today.getFullYear() * 31 + 
-                         today.getMonth() * 12 + 
-                         today.getDate()) * 2654435761;
+    generateSeedFromDate(date) {
+        const dateHash = (date.getFullYear() * 31 + 
+                         date.getMonth() * 12 + 
+                         date.getDate()) * 2654435761;
         return Math.abs(dateHash) % 2147483647;
     }
 
@@ -112,28 +118,31 @@ class BarkleGame {
     }
 
     loadGameState() {
-        const today = new Date().toDateString();
         const savedState = JSON.parse(localStorage.getItem('barkleState') || '{}');
+        const currentGameDate = this.gameDate.toDateString();
         
-        // Reset if it's a new day
-        if (savedState.lastPlayed !== today) {
+        // Reset if it's a different game date than the saved state
+        if (savedState.gameDate !== currentGameDate) {
             this.score = 0;
             this.attempts = [];
             this.gameOver = false;
+            this.dailyBreeds = null;  // Reset daily breeds
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
             this.gameOver = savedState.gameOver || false;
+            this.dailyBreeds = savedState.dailyBreeds || null;  // Restore daily breeds
         }
     }
 
     saveGameState() {
         const gameState = {
-            lastPlayed: new Date().toDateString(),
+            gameDate: this.gameDate.toDateString(),
             score: this.score,
             attempts: this.attempts,
             gameOver: this.gameOver,
-            currentBreed: this.currentBreed
+            currentBreed: this.currentBreed,
+            dailyBreeds: this.dailyBreeds  // Save daily breeds
         };
         localStorage.setItem('barkleState', JSON.stringify(gameState));
     }
@@ -236,7 +245,36 @@ class BarkleGame {
     }
 
     getCurrentStreak() {
-        return parseInt(localStorage.getItem('currentStreak') || '0');
+        const encodedData = localStorage.getItem('streakData');
+        if (!encodedData) return 0;
+
+        try {
+            const decodedData = atob(encodedData);
+            const [storedStreak, storedChecksum] = decodedData.split(':').map(Number);
+            const calculatedChecksum = this.calculateChecksum(storedStreak);
+
+            if (storedChecksum !== calculatedChecksum) {
+                console.warn('Streak data may have been tampered with.');
+                return 0;
+            }
+
+            return storedStreak;
+        } catch (error) {
+            console.error('Error decoding streak data:', error);
+            return 0;
+        }
+    }
+
+    setCurrentStreak(streak) {
+        const checksum = this.calculateChecksum(streak);
+        const dataToEncode = `${streak}:${checksum}`;
+        const encodedData = btoa(dataToEncode);
+        localStorage.setItem('streakData', encodedData);
+    }
+
+    calculateChecksum(value) {
+        // Simple checksum calculation (e.g., sum of digits)
+        return value.toString().split('').reduce((sum, digit) => sum + parseInt(digit, 10), 0);
     }
 
     async checkAnswer(selected) {
@@ -246,6 +284,7 @@ class BarkleGame {
         buttons.forEach(btn => btn.disabled = true);
 
         const feedback = document.getElementById('feedback');
+        const isToday = this.gameDate.toDateString() === new Date().toDateString();
         
         // Record attempt
         this.attempts.push({
@@ -260,22 +299,29 @@ class BarkleGame {
             feedback.className = 'feedback correct';
             this.happyBark.play();
             
-            localStorage.setItem('gamesWon', 
-                (parseInt(localStorage.getItem('gamesWon') || '0') + 1).toString());
-            localStorage.setItem('currentStreak',
-                (parseInt(localStorage.getItem('currentStreak') || '0') + 1).toString());
+            // Only update streaks for today's game
+            if (isToday) {
+                localStorage.setItem('gamesWon', 
+                    (parseInt(localStorage.getItem('gamesWon') || '0', 10) + 1).toString());
+                this.setCurrentStreak(this.getCurrentStreak() + 1);
+                this.guessStreak++;
+            }
         } else {
             feedback.textContent = `Wrong! It was a ${this.currentBreed}`;
             feedback.className = 'feedback incorrect';
             this.sadBark.play();
-            localStorage.setItem('currentStreak', '0');
+            // Only reset streaks for today's game
+            if (isToday) {
+                this.setCurrentStreak(0);
+                this.guessStreak = 0;
+            }
         }
 
         // Check if game is over
         if (this.attempts.length >= this.MAX_ATTEMPTS) {
             this.gameOver = true;
             localStorage.setItem('gamesPlayed',
-                (parseInt(localStorage.getItem('gamesPlayed') || '0') + 1).toString());
+                (parseInt(localStorage.getItem('gamesPlayed') || '0', 10) + 1).toString());
             
             // Calculate final score
             const correctGuesses = this.attempts.filter(attempt => attempt.correct).length;
@@ -485,6 +531,11 @@ class BarkleGame {
     }
 
     generateDailyBreeds() {
+        // If we already have daily breeds for this date, use them
+        if (this.dailyBreeds) {
+            return this.dailyBreeds;
+        }
+
         const breeds = new Set();
         const dailyBreeds = [];
         let attempts = 0;
@@ -503,23 +554,31 @@ class BarkleGame {
             attempts++;
         }
         
+        this.dailyBreeds = dailyBreeds;  // Store the generated breeds
         return dailyBreeds;
     }
 
     playYesterday() {
+        // Clear existing game state first
+        localStorage.removeItem('barkleState');
+        
         // Mark yesterday's game as played
         localStorage.setItem('yesterdayPlayed', 'true');
         
         // Set the date to yesterday and store it
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        this.gameDate = yesterday;  // Store yesterday's date
+        this.gameDate = yesterday;
+        localStorage.setItem('gameDate', yesterday.toDateString());
         
-        // Generate yesterday's seed
-        const dateHash = (yesterday.getFullYear() * 31 + 
-                         yesterday.getMonth() * 12 + 
-                         yesterday.getDate()) * 2654435761;
-        this.todaysSeed = Math.abs(dateHash) % 2147483647;
+        // Update seed for yesterday's date
+        this.todaysSeed = this.generateSeedFromDate(yesterday);
+        
+        // Reset game state
+        this.score = 0;
+        this.attempts = [];
+        this.gameOver = false;
+        this.dailyBreeds = null;  // Force regeneration of breeds for yesterday
         
         // Generate yesterday's breeds
         this.dailyBreeds = this.generateDailyBreeds();
@@ -529,10 +588,13 @@ class BarkleGame {
         this.attempts = [];
         this.gameOver = false;
         
+        // Save the initial state for yesterday's game
+        this.saveGameState();
+        
         // Clear localStorage stats for yesterday's game
         localStorage.setItem('gamesPlayed', '0');
         localStorage.setItem('gamesWon', '0');
-        localStorage.setItem('currentStreak', '0');
+        // Do not reset streakData here
         localStorage.removeItem('barkleState');
         
         // Hide the completion modal
@@ -588,27 +650,30 @@ class BarkleGame {
         try {
             const db = firebase.database();
             const scoresRef = db.ref('scores');
-            const today = new Date().toDateString();
+            const today = new Date();
+            const isToday = this.gameDate.toDateString() === today.toDateString();
             
-            // Update streak only if this is the first game of the day
-            if (localStorage.getItem('lastPlayDate') !== today) {
-                const yesterday = new Date(Date.now() - 86400000).toDateString();
-                if (localStorage.getItem('lastPlayDate') === yesterday) {
-                    // Played yesterday, increment streak
-                    this.streak++;
-                }
-                localStorage.setItem('currentStreak', this.streak.toString());
-                localStorage.setItem('lastPlayDate', today);
-            }
-            
-            return scoresRef.push({
+            // Calculate final guess streak based on consecutive correct answers
+            const consecutiveCorrect = this.attempts
+                .slice()
+                .reverse()
+                .findIndex(attempt => !attempt.correct);
+                
+            const finalGuessStreak = consecutiveCorrect === -1 ? 
+                this.attempts.length : // All answers were correct
+                consecutiveCorrect;    // Number of correct answers until first wrong one
+                
+            const scoreData = {
                 score: correctGuesses,
                 date: this.gameDate.toDateString(),
                 name: this.playerName || 'Anonymous doggy',
                 deviceId: this.deviceId,
-                streak: this.streak,
-                timestamp: Date.now()
-            });
+                guessStreak: finalGuessStreak,  // Store guess streak for all games
+                isYesterdayGame: !isToday,      // Flag to indicate if this is yesterday's game
+                streak: isToday ? this.streak : 1  // Only include real streak for today's game
+            };
+
+            return scoresRef.push(scoreData);
         } catch (error) {
             console.error('Error saving score:', error);
             return Promise.resolve();
@@ -702,48 +767,45 @@ class BarkleGame {
             const db = firebase.database();
             const today = new Date();
             
-            // Get player's latest score entry
+            // Get player's latest score entries for today
             const scoresRef = db.ref('scores')
                 .orderByChild('deviceId')
-                .equalTo(this.deviceId)
-                .limitToLast(1);
+                .equalTo(this.deviceId);
             
             const snapshot = await scoresRef.once('value');
-            const lastScore = Object.values(snapshot.val() || {})[0];
+            const scores = snapshot.val() || {};
+            const scoreEntries = Object.values(scores);
+            
+            // Find the most recent score before today
+            const lastScore = scoreEntries
+                .filter(score => new Date(score.date) < today)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
             
             if (!lastScore) {
                 // First time playing
                 this.streak = 1;
+                this.guessStreak = 0;
             } else {
-                // Convert the stored date string back to a Date object
                 const lastPlayDate = new Date(lastScore.date);
                 
-                // Check if dates are consecutive by comparing year, month, and day
+                // Check if the last play was yesterday
                 const isConsecutiveDay = 
                     lastPlayDate.getFullYear() === today.getFullYear() &&
                     lastPlayDate.getMonth() === today.getMonth() &&
                     lastPlayDate.getDate() === today.getDate() - 1;
                 
-                const isSameDay = 
-                    lastPlayDate.getFullYear() === today.getFullYear() &&
-                    lastPlayDate.getMonth() === today.getMonth() &&
-                    lastPlayDate.getDate() === today.getDate();
-                
                 if (isConsecutiveDay) {
-                    // Played yesterday (consecutive calendar day)
                     this.streak = lastScore.streak + 1;
-                } else if (isSameDay) {
-                    // Already played today
-                    this.streak = lastScore.streak;
                 } else {
-                    // Not consecutive days
-                    this.streak = 1;
+                    this.streak = 1;  // Reset streak if not consecutive
                 }
+                this.guessStreak = 0;  // Always start with 0 guess streak
             }
             
         } catch (error) {
             console.error('Error managing streak:', error);
-            this.streak = 1;  // Default to 1 if there's an error
+            this.streak = 1;
+            this.guessStreak = 0;
         }
     }
 }
