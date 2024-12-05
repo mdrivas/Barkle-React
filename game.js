@@ -104,6 +104,9 @@ class BarkleGame {
             this.score = 0;
             this.attempts = [];
             this.gameOver = false;
+            
+            // Reset yesterdayPlayed flag for a new day
+            localStorage.setItem('yesterdayPlayed', 'false');
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
@@ -569,13 +572,98 @@ class BarkleGame {
     }
 
     saveScore(correctGuesses) {
-        const db = firebase.database();
-        return db.ref('scores').push({
-            score: correctGuesses,
-            date: this.gameDate.toDateString(),
-            name: this.playerName || 'Anonymous doggy',
-            timestamp: Date.now()
-        });
+        try {
+            const db = firebase.database();
+            const scoresRef = db.ref('scores');
+            
+            return scoresRef.push({
+                score: correctGuesses,
+                date: this.gameDate.toDateString(),
+                name: this.playerName || 'Anonymous doggy',
+                timestamp: Date.now()
+            });
+        } catch (error) {
+            console.error('Error saving score:', error);
+            // Return a resolved promise to maintain the flow
+            return Promise.resolve();
+        }
+    }
+
+    async resumeGame() {
+        try {
+            // Get the saved state
+            const savedState = JSON.parse(localStorage.getItem('barkleState') || '{}');
+            
+            // Update the score display
+            const scoreElement = document.getElementById('score');
+            if (scoreElement) {
+                scoreElement.textContent = this.score;
+            }
+            
+            // Update attempts history
+            this.updateDisplay();
+            
+            // If there was a current breed saved, show that image and options
+            if (savedState.currentBreed) {
+                this.currentBreed = savedState.currentBreed;
+                const currentAttempt = this.attempts.length;
+                
+                // Get the image for the current breed
+                const dogImage = document.getElementById('dog-image');
+                dogImage.classList.add('loading');
+                
+                const imageResponse = await fetch(`https://dog.ceo/api/breed/${this.currentBreed}/images/random`);
+                if (!imageResponse.ok) {
+                    throw new Error('image');
+                }
+                const imageData = await imageResponse.json();
+                
+                // Load the image
+                const img = new Image();
+                img.onerror = () => {
+                    this.showError(this.errorMessages.image);
+                    dogImage.classList.remove('loading');
+                };
+                img.onload = () => {
+                    dogImage.src = imageData.message;
+                    dogImage.classList.remove('loading');
+                };
+                img.src = imageData.message;
+                
+                // Recreate the options buttons using same seed as before
+                const options = [this.currentBreed];
+                let wrongSeed = this.todaysSeed + (currentAttempt * 100);
+                
+                while (options.length < 4) {
+                    wrongSeed++;
+                    const wrongIndex = Math.floor(this.seededRandom(wrongSeed) * this.allBreeds.length);
+                    const wrong = this.allBreeds[wrongIndex];
+                    if (!options.includes(wrong)) options.push(wrong);
+                }
+                
+                // Use seeded shuffle
+                options.sort((a, b) => this.seededRandom(wrongSeed + options.length) - 0.5);
+                
+                // Create buttons
+                const buttonsContainer = document.getElementById('buttons');
+                buttonsContainer.innerHTML = '';
+                options.forEach(breed => {
+                    const button = document.createElement('button');
+                    button.textContent = breed.charAt(0).toUpperCase() + breed.slice(1);
+                    button.className = 'option-btn';
+                    button.onclick = () => this.checkAnswer(breed);
+                    buttonsContainer.appendChild(button);
+                });
+            } else {
+                // If no current breed was saved, start a new round
+                await this.newRound();
+            }
+            
+        } catch (error) {
+            console.error('Failed to resume game:', error);
+            this.showError(this.errorMessages.general);
+            return false;
+        }
     }
 }
 
