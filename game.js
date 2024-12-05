@@ -20,6 +20,22 @@ class BarkleGame {
         if (!this.playerName) {
             this.promptForName();
         }
+
+        // Generate or retrieve unique device ID
+        this.deviceId = localStorage.getItem('deviceId') || this.generateDeviceId();
+        localStorage.setItem('deviceId', this.deviceId);
+
+        // Initialize streak tracking
+        this.initializeStreak();
+    }
+
+    generateDeviceId() {
+        // UUID v4 implementation
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
     }
 
     promptForName() {
@@ -104,9 +120,6 @@ class BarkleGame {
             this.score = 0;
             this.attempts = [];
             this.gameOver = false;
-            
-            // Reset yesterdayPlayed flag for a new day
-            localStorage.setItem('yesterdayPlayed', 'false');
         } else {
             this.score = savedState.score || 0;
             this.attempts = savedState.attempts || [];
@@ -571,20 +584,33 @@ class BarkleGame {
         document.body.classList.remove('modal-open');  // Remove blur effect
     }
 
-    saveScore(correctGuesses) {
+    async saveScore(correctGuesses) {
         try {
             const db = firebase.database();
             const scoresRef = db.ref('scores');
+            const today = new Date().toDateString();
+            
+            // Update streak only if this is the first game of the day
+            if (localStorage.getItem('lastPlayDate') !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                if (localStorage.getItem('lastPlayDate') === yesterday) {
+                    // Played yesterday, increment streak
+                    this.streak++;
+                }
+                localStorage.setItem('currentStreak', this.streak.toString());
+                localStorage.setItem('lastPlayDate', today);
+            }
             
             return scoresRef.push({
                 score: correctGuesses,
                 date: this.gameDate.toDateString(),
                 name: this.playerName || 'Anonymous doggy',
+                deviceId: this.deviceId,
+                streak: this.streak,
                 timestamp: Date.now()
             });
         } catch (error) {
             console.error('Error saving score:', error);
-            // Return a resolved promise to maintain the flow
             return Promise.resolve();
         }
     }
@@ -663,6 +689,61 @@ class BarkleGame {
             console.error('Failed to resume game:', error);
             this.showError(this.errorMessages.general);
             return false;
+        }
+    }
+
+    displayLeaderboard(scores) {
+        const leaderboardContent = document.getElementById('leaderboardContent');
+        leaderboardContent.inner
+    }
+
+    async initializeStreak() {
+        try {
+            const db = firebase.database();
+            const today = new Date();
+            
+            // Get player's latest score entry
+            const scoresRef = db.ref('scores')
+                .orderByChild('deviceId')
+                .equalTo(this.deviceId)
+                .limitToLast(1);
+            
+            const snapshot = await scoresRef.once('value');
+            const lastScore = Object.values(snapshot.val() || {})[0];
+            
+            if (!lastScore) {
+                // First time playing
+                this.streak = 1;
+            } else {
+                // Convert the stored date string back to a Date object
+                const lastPlayDate = new Date(lastScore.date);
+                
+                // Check if dates are consecutive by comparing year, month, and day
+                const isConsecutiveDay = 
+                    lastPlayDate.getFullYear() === today.getFullYear() &&
+                    lastPlayDate.getMonth() === today.getMonth() &&
+                    lastPlayDate.getDate() === today.getDate() - 1;
+                
+                const isSameDay = 
+                    lastPlayDate.getFullYear() === today.getFullYear() &&
+                    lastPlayDate.getMonth() === today.getMonth() &&
+                    lastPlayDate.getDate() === today.getDate();
+                
+                if (isConsecutiveDay) {
+                    // Played yesterday (consecutive calendar day)
+                    this.streak = lastScore.streak + 1;
+                } else if (isSameDay) {
+                    // Already played today
+                    this.streak = lastScore.streak;
+                } else {
+                    // Not consecutive days
+                    this.streak = 1;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error managing streak:', error);
+            this.streak = 1;  // Default to 1 if there's an error
         }
     }
 }
