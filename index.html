@@ -170,14 +170,16 @@
         .modal-content {
             background: #1a1a1b;
             padding: 20px;
-            width: 80%;
+            width: 90%;
             max-width: 500px;
             max-height: 80vh;
             border-radius: 15px;
             position: relative;
             color: white;
             overflow-y: auto;
+            overflow-x: hidden;  /* Prevent horizontal scroll */
             margin: 0 auto;
+            box-sizing: border-box;  /* Include padding in width calculation */
         }
 
         .close {
@@ -199,12 +201,22 @@
             border-radius: 5px;
             align-items: center;
             font-size: 0.9rem;
+            min-width: 0;  /* Allow content to shrink */
+            overflow: hidden;  /* Prevent content overflow */
         }
 
         @media (max-width: 768px) {
             .score-entry {
                 grid-template-columns: 0.5fr 1.2fr 0.7fr 0.7fr 0.7fr;
                 font-size: 0.8rem;
+                gap: 3px;  /* Reduce gap on mobile */
+                padding: 8px 4px;  /* Reduce padding on mobile */
+            }
+            
+            .score-name {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
 
