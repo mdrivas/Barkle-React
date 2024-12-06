@@ -204,11 +204,25 @@ class PawsistenceGame {
             feedback.className = 'feedback correct';
             this.happyBark.play();
             
-            // Update high score if needed
-            const currentHighScore = parseInt(localStorage.getItem('pawsistenceHighScore') || '0');
-            if (this.streak > currentHighScore) {
-                localStorage.setItem('pawsistenceHighScore', this.streak.toString());
-                document.getElementById('high-score').textContent = this.streak;
+            // Check if current streak is higher than Firebase's stored highest streak
+            const db = firebase.database();
+            const userRef = db.ref(`pawsistence-users/${this.deviceId}`);
+            
+            try {
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val() || {};
+                const currentHighestStreak = userData.highestStreak || 0;
+                
+                if (this.streak > currentHighestStreak) {
+                    // Update Firebase and display with new highest streak
+                    await userRef.update({
+                        highestStreak: this.streak,
+                        lastUpdated: new Date().toISOString()
+                    });
+                    document.getElementById('high-score').textContent = this.streak;
+                }
+            } catch (error) {
+                console.error('Error updating highest streak:', error);
             }
 
             // Continue with new round after delay
