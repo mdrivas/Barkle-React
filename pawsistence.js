@@ -153,16 +153,37 @@ class PawsistenceGame {
 
         // Check remaining plays
         if (this.playsToday >= this.maxDailyPlays) {
-            // Show the daily limit modal instead of just the error message
+            // Show the daily limit modal
             const modal = document.getElementById('daily-limit-modal');
-            if (modal) modal.style.display = 'flex';
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                // Set up button handlers
+                const shareDailyBtn = modal.querySelector('#share-daily-btn');
+                const leaderboardBtn = modal.querySelector('#view-leaderboard-btn');
+                const homeBtn = modal.querySelector('#home-btn');
+                
+                if (shareDailyBtn) {
+                    // Remove old listener and create fresh button
+                    shareDailyBtn.replaceWith(shareDailyBtn.cloneNode(true));
+                    const newShareBtn = modal.querySelector('#share-daily-btn');
+                    newShareBtn.onclick = () => this.shareResults(this.streak);
+                }
+                
+                if (leaderboardBtn) {
+                    leaderboardBtn.onclick = () => window.location.href = 'index.html?showLeaderboard=true';
+                }
+                
+                if (homeBtn) {
+                    homeBtn.onclick = () => window.location.href = 'index.html';
+                }
+            }
             return;
         }
 
         const buttons = document.querySelectorAll('.option-btn');
         buttons.forEach(btn => {
             btn.disabled = true;
-            // Add visual feedback for the selected answer
             if (btn.textContent.toLowerCase() === selected) {
                 btn.classList.add(selected === this.currentBreed ? 'correct' : 'incorrect');
             }
@@ -198,42 +219,84 @@ class PawsistenceGame {
             this.sadBark.play();
             this.gameOver = true;
 
-            // Save score to Firebase
-            try {
-                await this.saveScore();
-            } catch (error) {
-                console.error('Failed to save score:', error);
-            }
+            // Increment plays counter ONCE when game ends
+            this.playsToday++;
+            
+            // Update Firebase with new plays count and save score
+            await Promise.all([
+                this.updateDailyPlays(),
+                this.saveScore()
+            ]);
 
             // Show game over modal
             const modal = document.getElementById('game-over-modal');
-            const finalStreak = document.getElementById('final-streak');
-            finalStreak.textContent = this.streak;
-            modal.style.display = 'flex';
+            if (modal) {
+                const finalStreak = modal.querySelector('#final-streak');
+                if (finalStreak) {
+                    finalStreak.textContent = this.streak;
+                }
+                modal.style.display = 'flex';
 
-            // Set up button handlers
-            const playAgainBtn = document.getElementById('play-again-btn');
-            const shareBtn = document.getElementById('share-results-btn');
-            const leaderboardBtn = document.getElementById('view-leaderboard-btn');
+                // Set up button handlers with proper binding
+                const playAgainBtn = modal.querySelector('#play-again-btn');
+                const shareBtn = modal.querySelector('#share-results-btn');
+                const leaderboardBtn = modal.querySelector('#view-leaderboard-btn');
 
-            playAgainBtn.onclick = () => this.resetGame();
-            shareBtn.onclick = () => this.shareResults();
-            leaderboardBtn.onclick = () => window.location.href = 'index.html?showLeaderboard=true';
+                if (playAgainBtn) {
+                    playAgainBtn.onclick = () => this.resetGame();
+                }
+                if (shareBtn) {
+                    // Remove the event listener if it exists
+                    shareBtn.replaceWith(shareBtn.cloneNode(true));
+                    // Get the new button reference
+                    const newShareBtn = modal.querySelector('#share-results-btn');
+                    // Add the new event listener
+                    newShareBtn.onclick = () => this.shareResults();
+                }
+                if (leaderboardBtn) {
+                    leaderboardBtn.onclick = () => window.location.href = 'index.html?showLeaderboard=true';
+                }
+            }
         }
 
         this.updateDisplay();
-
-        if (selected !== this.currentBreed) {
-            // Increment plays counter when game ends
-            this.playsToday++;
-            await this.updateDailyPlays();
-            
-            // Save final score
-            await this.saveScore();
-        }
     }
 
-    resetGame() {
+    async resetGame() {
+        // Check if we've hit the daily limit
+        if (this.playsToday >= this.maxDailyPlays) {
+            // Hide game over modal
+            document.getElementById('game-over-modal').style.display = 'none';
+            
+            // Show the daily limit modal
+            const modal = document.getElementById('daily-limit-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                
+                // Set up button handlers
+                const shareDailyBtn = modal.querySelector('#share-daily-btn');
+                const leaderboardBtn = modal.querySelector('#view-leaderboard-btn');
+                const homeBtn = modal.querySelector('#home-btn');
+                
+                if (shareDailyBtn) {
+                    // Remove old listener and create fresh button
+                    shareDailyBtn.replaceWith(shareDailyBtn.cloneNode(true));
+                    const newShareBtn = modal.querySelector('#share-daily-btn');
+                    newShareBtn.onclick = () => this.shareResults(this.streak);
+                }
+                
+                if (leaderboardBtn) {
+                    leaderboardBtn.onclick = () => window.location.href = 'index.html?showLeaderboard=true';
+                }
+                
+                if (homeBtn) {
+                    homeBtn.onclick = () => window.location.href = 'index.html';
+                }
+            }
+            return;
+        }
+
+        // Only reset if we haven't hit the limit
         this.streak = 0;
         this.attempts = [];
         this.gameOver = false;
@@ -270,14 +333,31 @@ class PawsistenceGame {
         }
     }
 
-    shareResults() {
-        const text = `🐕 Pawsistence Mode 🐕\n\nI identified ${this.streak} dog breeds in a row!\n\nCan you beat my streak? Try it at https://barkle.netlify.app/pawsistence.html`;
-        
-        if (navigator.share) {
-            navigator.share({ text });
-        } else {
-            navigator.clipboard.writeText(text);
-            alert('Results copied to clipboard!');
+    async shareResults(currentStreak) {
+        try {
+            const db = firebase.database();
+            const userRef = db.ref(`pawsistence-users/${this.deviceId}`);
+            const snapshot = await userRef.once('value');
+            const userData = snapshot.val() || {};
+            
+            const highestStreak = userData.highestStreak || 0;
+            const dogEmojis = '🐶'.repeat(Math.min(parseInt(highestStreak), 5));
+            
+            const shareText = `Pawsistence is Key! 🔑
+My Highest Streak: ${highestStreak} ${dogEmojis}
+
+Can you beat my streak?
+https://barkle.netlify.app`;
+
+            if (navigator.share) {
+                await navigator.share({ text: shareText });
+            } else {
+                await navigator.clipboard.writeText(shareText);
+                alert('Results copied to clipboard!');
+            }
+        } catch (error) {
+            console.error('Error sharing results:', error);
+            alert('Unable to share results. Please try again.');
         }
     }
 

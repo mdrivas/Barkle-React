@@ -25,9 +25,6 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
-    <a href="index.html">
-        <img src="barklelogo.png" alt="Barkle Logo" class="barkle-logo">
-    </a>
     <div class="game-content-wrapper">
         <div class="game-wrapper">
             <div class="game-content">
@@ -69,8 +66,6 @@
             <p>Amazing run! You identified <span id="final-streak">0</span> breeds in a row!</p>
             <div class="modal-buttons">
                 <button id="play-again-btn" class="modal-btn">Play Again</button>
-                <button id="share-results-btn" class="modal-btn">Share Results</button>
-                <button id="view-leaderboard-btn" class="modal-btn">View Leaderboard</button>
             </div>
         </div>
     </div>
@@ -81,6 +76,8 @@
             <h2>🐕 Daily Limit Reached! 🐕</h2>
             <p>3 Pawsistence Plays per day! Come back tomorrow for more pawsome fun!</p>
             <div class="modal-buttons">
+                <button id="share-daily-btn" class="modal-btn">Share Results</button>
+                <button id="view-leaderboard-btn" class="modal-btn" onclick="window.location.href='index.html?showLeaderboard=true'">View Leaderboard</button>
                 <button id="home-btn" class="modal-btn" onclick="window.location.href='index.html'">Home</button>
             </div>
         </div>
