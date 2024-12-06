@@ -167,7 +167,7 @@ class PawsistenceGame {
                     // Remove old listener and create fresh button
                     shareDailyBtn.replaceWith(shareDailyBtn.cloneNode(true));
                     const newShareBtn = modal.querySelector('#share-daily-btn');
-                    newShareBtn.onclick = () => this.shareResults(this.streak);
+                    newShareBtn.onclick = () => this.shareResults();
                 }
                 
                 if (leaderboardBtn) {
@@ -296,7 +296,7 @@ class PawsistenceGame {
                     // Remove old listener and create fresh button
                     shareDailyBtn.replaceWith(shareDailyBtn.cloneNode(true));
                     const newShareBtn = modal.querySelector('#share-daily-btn');
-                    newShareBtn.onclick = () => this.shareResults(this.streak);
+                    newShareBtn.onclick = () => this.shareResults();
                 }
                 
                 if (leaderboardBtn) {
@@ -347,15 +347,18 @@ class PawsistenceGame {
         }
     }
 
-    async shareResults(currentStreak) {
+    async shareResults() {
         try {
             const db = firebase.database();
             const userRef = db.ref(`pawsistence-users/${this.deviceId}`);
             const snapshot = await userRef.once('value');
             const userData = snapshot.val() || {};
             
-            const highestStreak = userData.highestStreak || 0;
-            const dogEmojis = '🐶'.repeat(Math.min(parseInt(highestStreak), 5));
+            // Ensure we get a number, defaulting to 0 if undefined
+            const highestStreak = parseInt(userData.highestStreak) || 0;
+            console.log('Sharing with streak:', highestStreak); // Debug log
+            
+            const dogEmojis = '🐶'.repeat(Math.min(highestStreak, 5));
             
             const shareText = ('Pawsistence is Key! 🔑\nMy Highest Streak: ' + highestStreak + ' ' + dogEmojis + '\n\nCan you beat my streak?\nhttps://barkle.netlify.app').trim();
 
@@ -367,7 +370,7 @@ class PawsistenceGame {
             }
         } catch (error) {
             console.error('Error sharing results:', error);
-            alert('Unable to share results. Please try again.');
+            console.log('Firebase data:', await firebase.database().ref(`pawsistence-users/${this.deviceId}`).once('value')); // Debug log
         }
     }
 
