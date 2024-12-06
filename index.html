@@ -1169,20 +1169,37 @@
             const db = firebase.database();
             const today = new Date().toDateString();
             
-            db.ref('scores')
-                .orderByChild('date')
-                .equalTo(today)
-                .once('value')
-                .then((snapshot) => {
-                    const totalGames = snapshot.numChildren();
-                    const totalGamesElement = document.getElementById('totalGamesPlayed');
-                    totalGamesElement.innerHTML = `
-                         🐾 ${totalGames.toLocaleString()} Games Played Today 🐾 
-                    `;
-                })
-                .catch((error) => {
-                    console.error('Error loading total games:', error);
-                });
+            Promise.all([
+                // Get today's Barkle games
+                db.ref('scores')
+                    .orderByChild('date')
+                    .equalTo(today)
+                    .once('value'),
+                    
+                // Get today's Pawsistence games
+                db.ref('pawsistence-users')
+                    .orderByChild('lastPlayDate')
+                    .equalTo(today)
+                    .once('value')
+                    .then(snapshot => {
+                        let totalPlays = 0;
+                        snapshot.forEach(childSnapshot => {
+                            const userData = childSnapshot.val();
+                            totalPlays += userData.playsToday || 0;
+                        });
+                        return totalPlays;
+                    })
+            ])
+            .then(([barkleSnapshot, pawsistencePlays]) => {
+                const barkleGames = barkleSnapshot.numChildren();
+                const totalGames = barkleGames + pawsistencePlays;
+                
+                const totalGamesElement = document.getElementById('totalGamesPlayed');
+                totalGamesElement.innerHTML = `🐾 ${totalGames.toLocaleString()} Games Played Today 🐾`;
+            })
+            .catch((error) => {
+                console.error('Error loading total games:', error);
+            });
         }
 
         // Update the window.onload function
