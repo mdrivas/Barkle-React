@@ -126,39 +126,18 @@ class BarkleGame {
                 <p>What should we call you?</p>
                 <input type="text" 
                        id="player-name" 
-                       maxlength="12"  <!-- Limit input to 12 characters -->
+                       maxlength="20"
                        placeholder="Your name"
                        class="name-input"
-                       value="${this.playerName || ''}">  <!-- Pre-fill if exists -->
+                       value="${this.playerName || ''}">
                 <button class="option-btn" id="save-name">Start Playing</button>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        // Add these styles if not already in your CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            .name-input {
-                padding: 10px;
-                margin: 10px 0;
-                width: 100%;
-                border: 2px solid #538d4e;
-                border-radius: 5px;
-                background: #1a1a1b;
-                color: white;
-                font-size: 1.1em;
-            }
-            
-            .name-input:focus {
-                outline: none;
-                border-color: #66aa61;
-            }
-        `;
-        document.head.appendChild(style);
-
         const input = modal.querySelector('#player-name');
-        const button = modal.querySelector('#save-name');
+        const button = modal.querySelector('.submit-name');
 
         const saveName = () => {
             let name = input.value.trim();
@@ -167,15 +146,23 @@ class BarkleGame {
                 alert('Please choose a different name.');
                 return;
             }
-            this.playerName = name;  // Store in class
-            localStorage.setItem('playerName', name);  // Store in localStorage
+            this.playerName = name;
+            localStorage.setItem('playerName', name);
             modal.remove();
+            
+            // Update display
+            const playerNameElement = document.getElementById('player-name');
+            if (playerNameElement) {
+                playerNameElement.textContent = name;
+            }
         };
 
         button.onclick = saveName;
-        input.onkeypress = (e) => {
+
+        // Add enter key support
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') saveName();
-        };
+        });
     }
 
     containsBadWords(name) {
