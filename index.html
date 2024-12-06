@@ -348,7 +348,7 @@
             font-size: 1rem;
             font-weight: bold;
             margin-top: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 15px;
             text-align: center;
             animation: gradientBG 5s ease infinite;
             box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);  /* Saddle Brown shadow */
@@ -743,6 +743,122 @@
         .submit-name:hover {
             background-color: #66aa61;
         }
+
+        .game-mode-content {
+            text-align: center;
+            padding: 40px !important;
+        }
+
+        .game-mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mode-btn {
+            background: rgba(83, 141, 78, 0.2);
+            border: 2px solid #538d4e;
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .mode-btn h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            color: #538d4e;
+        }
+
+        .mode-btn p {
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(83, 141, 78, 0.3);
+            box-shadow: 0 4px 12px rgba(83, 141, 78, 0.2);
+        }
+
+        .mode-icon {
+            position: absolute;
+            right: 20px;
+            top: 45%;  /* Moved up from 50% */
+            transform: translateY(-50%);
+            font-size: 2.5rem;
+            margin-top: -13px;  /* Increased upward adjustment */
+        }
+
+        @media (max-width: 768px) {
+            .mode-btn h3 {
+                font-size: 1.2rem;
+            }
+            
+            .mode-btn p {
+                font-size: 0.9rem;
+            }
+            
+            .mode-icon {
+                font-size: 2rem;
+                margin-top: -15px;  /* Slightly less adjustment for mobile */
+            }
+        }
+
+        .leaderboard-mode-selector {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            border-bottom: 1px solid rgba(83, 141, 78, 0.3);
+            margin: 0px -20px;
+            padding: 0 20px;
+        }
+
+        .mode-select {
+            background: none;
+            border: none;
+            color: white;
+            padding: 15px 0;
+            cursor: pointer;
+            font-size: 0.95rem;
+            position: relative;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+            width: 50%;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .selector-underline {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            height: 3px;
+            background: #538d4e;
+            transition: transform 0.3s ease;
+            width: 50%;
+        }
+
+        /* Update the transform value for Pawsistence */
+        .mode-select[data-mode="pawsistence"].active ~ .selector-underline {
+            transform: translateX(100%);
+        }
+
+        .mode-select[data-mode="daily"].active ~ .selector-underline {
+            transform: translateX(0);
+        }
+
+        /* Add responsive styles */
+        @media (max-width: 768px) {
+            .mode-select {
+                font-size: 0.85rem;
+                padding: 12px 0;
+            }
+        }
     </style>
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-T2QE7KJYGT"></script>
@@ -856,7 +972,12 @@
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLeaderboard()">&times;</span>
-            <h2>🏆 Today's Top Scores 🏆</h2>
+            <h2>🏆 Top Scores 🏆</h2>
+            <div class="leaderboard-mode-selector">
+                <button class="mode-select active" data-mode="daily">Today's Barkle</button>
+                <button class="mode-select" data-mode="pawsistence">Pawsistence</button>
+                <div class="selector-underline"></div>
+            </div>
             <div id="leaderboardContent"></div>
         </div>
     </div>
@@ -876,18 +997,62 @@
         </div>
     </div>
     <div id="feedbackPopup" class="feedback-popup">Thank you for your feedback!</div>
+    <div id="gameModeModal" class="modal">
+        <div class="modal-content game-mode-content">
+            <h2>Choose Your Mode</h2>
+            <div class="game-mode-buttons">
+                <button class="mode-btn daily-mode" onclick="window.location.href='game.html'">
+                    <h3>Today's Barkle</h3>
+                    <p>5 chances to guess today's dog breeds</p>
+                    <span class="mode-icon">🐶</span>
+                </button>
+                <button class="mode-btn survival-mode" onclick="window.location.href='pawsistence.html'">
+                    <h3>Pawsistence Mode</h3>
+                    <p>How many breeds can you guess in a row? 3 Plays per day</p>
+                    <span class="mode-icon">🔥</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <script>
+        // Add this variable at the start of your script section
+        let currentLeaderboardMode = 'daily';
+
+        // Update the showLeaderboard function
         function showLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
             modal.classList.add('show');
             document.body.classList.add('no-scroll');
-            loadTodayScores();
+            
+            // Load the correct scores based on current mode
+            if (currentLeaderboardMode === 'daily') {
+                loadTodayScores();
+            } else {
+                loadPawsistenceScores();
+            }
         }
 
-        function closeLeaderboard() {
-            const modal = document.getElementById('leaderboardModal');
-            modal.classList.remove('show');
-            document.body.classList.remove('no-scroll');
+        // Update the initLeaderboardModeSelector function
+        function initLeaderboardModeSelector() {
+            const buttons = document.querySelectorAll('.mode-select');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active state
+                    buttons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Store the current mode
+                    currentLeaderboardMode = button.dataset.mode;
+                    
+                    // Load appropriate scores
+                    if (currentLeaderboardMode === 'daily') {
+                        loadTodayScores();
+                    } else {
+                        loadPawsistenceScores();
+                    }
+                });
+            });
         }
 
         function loadTodayScores() {
@@ -991,6 +1156,12 @@
                 `;
                 leaderboardContent.appendChild(entry);
             });
+
+            // Add total players stats
+            const statsContainer = document.createElement('div');
+            statsContainer.className = 'total-games-played';
+            statsContainer.innerHTML = `🏆 ${scores.length} Total Players Today 🏆`;
+            leaderboardContent.appendChild(statsContainer);
         }
 
         // Add this new function to load total games on page load
@@ -1122,6 +1293,149 @@
         document.querySelector('.feedback-toggle').addEventListener('click', function(e) {
             e.preventDefault();
             showFeedback();
+        });
+
+        // Replace the existing play button onclick with this
+        document.querySelector('.play-button').onclick = function() {
+            const modal = document.getElementById('gameModeModal');
+            modal.classList.add('show');
+            document.body.classList.add('no-scroll');
+        };
+
+        // Add close functionality if clicking outside the modal
+        document.getElementById('gameModeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+                document.body.classList.remove('no-scroll');
+            }
+        });
+
+        function loadPawsistenceScores() {
+            const db = firebase.database();
+            db.ref('pawsistence-users')
+                .once('value')
+                .then((snapshot) => {
+                    const scores = [];
+                    snapshot.forEach((childSnapshot) => {
+                        const userData = childSnapshot.val();
+                        // Only add users who have a highestStreak
+                        if (userData.highestStreak) {
+                            scores.push({
+                                name: userData.name || 'Anonymous doggy',
+                                highestStreak: userData.highestStreak,
+                                deviceId: childSnapshot.key,
+                                lastPlayDate: userData.lastPlayDate,
+                                lastUpdated: userData.lastUpdated
+                            });
+                        }
+                    });
+                    
+                    // Sort by highest streak (descending)
+                    scores.sort((a, b) => b.highestStreak - a.highestStreak);
+                    
+                    displayPawsistenceLeaderboard(scores);
+                })
+                .catch(error => {
+                    console.error('Error loading pawsistence scores:', error);
+                    const leaderboardContent = document.getElementById('leaderboardContent');
+                    leaderboardContent.innerHTML = '<p>Error loading scores. Please try again! 🐕</p>';
+                });
+        }
+
+        // Call this when initializing the leaderboard
+        document.addEventListener('DOMContentLoaded', () => {
+            initLeaderboardModeSelector();
+        });
+
+        function displayPawsistenceLeaderboard(scores) {
+            const leaderboardContent = document.getElementById('leaderboardContent');
+            leaderboardContent.innerHTML = '';
+            
+            const currentDeviceId = localStorage.getItem('deviceId');
+            
+            if (scores.length === 0) {
+                leaderboardContent.innerHTML = '<p>No Pawsistence scores yet! Be the first to play! 🐕</p>';
+                return;
+            }
+
+            // Find user's score and add it to the top
+            const userScore = scores.find(score => score.deviceId === currentDeviceId);
+            if (userScore) {
+                const userRank = scores.findIndex(score => score.deviceId === currentDeviceId) + 1;
+                const dateStr = formatDate(userScore.lastPlayDate);
+                
+                const yourScoreContainer = document.createElement('div');
+                yourScoreContainer.className = 'your-score-container';
+                yourScoreContainer.innerHTML = `
+                    <div class="your-score-header">Your Best</div>
+                    <div class="your-score-entry">
+                        <span class="score-rank">#${userRank}</span>
+                        <span class="score-name">${userScore.name}</span>
+                        <span class="score-value">${userScore.highestStreak}🔥</span>
+                        <span class="score-date">${dateStr}</span>
+                    </div>
+                `;
+                leaderboardContent.appendChild(yourScoreContainer);
+            }
+
+            // Add column headers
+            const headers = document.createElement('div');
+            headers.className = 'score-entry headers';
+            headers.innerHTML = `
+                <span class="score-rank">Rank</span>
+                <span class="score-name">Player</span>
+                <span class="score-value">Best Streak</span>
+                <span class="score-date">Date</span>
+            `;
+            leaderboardContent.appendChild(headers);
+
+            // Display all scores
+            scores.forEach((score, index) => {
+                const entry = document.createElement('div');
+                entry.className = 'score-entry';
+                const dateStr = formatDate(score.lastPlayDate);
+                
+                if (index === 0) entry.className += ' top-1';
+                else if (index === 1) entry.className += ' top-2';
+                else if (index === 2) entry.className += ' top-3';
+
+                entry.innerHTML = `
+                    <span class="score-rank">#${index + 1}</span>
+                    <span class="score-name">${score.name}</span>
+                    <span class="score-value">${score.highestStreak}🔥</span>
+                    <span class="score-date">${dateStr}</span>
+                `;
+                leaderboardContent.appendChild(entry);
+            });
+
+            // Add total players stats
+            const statsContainer = document.createElement('div');
+            statsContainer.className = 'total-games-played';
+            statsContainer.innerHTML = `🏆 ${scores.length} Total Players 🏆`;
+            leaderboardContent.appendChild(statsContainer);
+        }
+
+        // Helper function to format the date
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function closeLeaderboard() {
+            const modal = document.getElementById('leaderboardModal');
+            modal.classList.remove('show');
+            document.body.classList.remove('no-scroll');
+        }
+
+        // Also add click outside functionality for the leaderboard modal
+        document.getElementById('leaderboardModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLeaderboard();
+            }
         });
     </script>
 </body>

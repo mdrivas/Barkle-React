@@ -1,13 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #1e1e1e;
+    background: linear-gradient(135deg, #1a1a1b 0%, #121213 100%);
+    background-attachment: fixed;
     color: #ffffff;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow-x: hidden;
 }
 
 .game-wrapper {
@@ -23,7 +28,10 @@ body {
 .container {
     width: 500px;
     text-align: center;
-    background-color: #1e1e1e;
+    background: rgba(26, 26, 27, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     padding: 25px 40px;
     display: flex;
     flex-direction: column;
@@ -31,7 +39,6 @@ body {
     gap: 15px;
     position: relative;
     border-radius: 20px;
-    box-shadow: 10px 10px 20px #141414, -10px -10px 20px #282828;
 }
 
 h1 {
@@ -410,6 +417,8 @@ h1:hover::after {
     background: linear-gradient(#121213, #121213) padding-box,
                 linear-gradient(45deg, #3a3a3c, #2a2a2b) border-box;
     border-radius: 12px;
+    border: 1px solid #7a7a7a;
+
 }
 
 /* Shimmer effect for loading state */
@@ -461,6 +470,7 @@ h1:hover::after {
 .attempts-history {
     scrollbar-width: thin;
     scrollbar-color: #3a3a3c #1a1a1b;
+    border: 1px solid #7a7a7a;
 }
 
 .attempts-history::-webkit-scrollbar {
@@ -500,9 +510,42 @@ h1:hover::after {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
+        background: #121213;  /* Solid background instead of gradient */
     }
 
-    
+    .container {
+        width: 90%;
+        max-width: none;
+        padding: 20px;
+        margin: 10px auto;
+        background: rgba(26, 26, 27, 0.95);
+        border: 1px solid #7a7a7a;
+        border-radius: 12px;
+    }
+
+    /* Remove the pattern overlay */
+    .game-content-wrapper::before {
+        display: none;
+    }
+
+    .attempts-history {
+        position: static;
+        width: 95%;
+        height: 150px;
+        margin: 10px auto;
+        padding: 10px;
+        order: 2;
+        transform: none;
+        top: auto;
+        left: auto;
+        border: 1px solid #7a7a7a;
+        background: rgba(26, 26, 27, 0.95);
+    }
+
+    .stats-container {
+        border: 1px solid #7a7a7a;
+        background: rgba(26, 26, 27, 0.95);
+    }
 
     .game-content {
         display: flex;
@@ -572,6 +615,7 @@ h1:hover::after {
         height: 150px;
         margin: 10px auto;
         padding: 10px;
+        border: 1px solid #7a7a7a;
     }
 
     .stats-container {
@@ -756,4 +800,150 @@ body.modal-open .game-content-wrapper {
     margin: 0;
     color: #888888;
     font-size: 16px;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+    body::before,
+    body::after {
+        width: 200px;
+        height: 200px;
+    }
+
+    .container {
+        background: rgba(26, 26, 27, 0.9);
+        margin: 15px;
+        padding: 15px;
+        border: 1px solid #7a7a7a;
+    }
+
+    /* Add subtle pattern overlay */
+    .game-content-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* Improve spacing and readability */
+    .game-content {
+        padding: 10px;
+    }
+
+    .buttons-container {
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .option-btn {
+        background: rgba(42, 42, 43, 0.9);
+        backdrop-filter: blur(5px);
+    }
+}
+
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Add these specific styles for the daily limit modal */
+
+
+
+
+#daily-limit-modal .modal-btn {
+    background-color: #4CAF50;  /* Green color for home button */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#daily-limit-modal .modal-btn:hover {
+    background-color: #45a049;
+}
+
+/* Updated modal button styles with slower animation */
+.modal-btn {
+    margin: 10px;
+    padding: 15px 30px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #6c63ff;
+    border: 2px solid #6c63ff;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);  /* Slower transition */
+    box-shadow: 0 10px 20px rgba(108, 99, 255, 0.2);
+}
+
+.modal-btn:hover {
+    background-color: rgba(15, 14, 23, 0.8);
+    color: #ffffff;  /* Keep text white */
+    border-color: #ffffff;
+    box-shadow: 0 15px 30px rgba(15, 14, 23, 0.4);
+    transform: translateY(-3px);
+    letter-spacing: 0.5px;
+}
+
+.modal-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 10px 20px rgba(15, 14, 23, 0.2);
+}
+
+/* All modal buttons use the same style */
+#daily-limit-modal .modal-btn,
+#game-over-modal .modal-btn,
+#play-again-btn,
+#share-results-btn,
+#view-leaderboard-btn {
+    background-color: #6c63ff;
+    border: 2px solid #6c63ff;
+    color: #ffffff;
+}
+
+#daily-limit-modal .modal-btn:hover,
+#game-over-modal .modal-btn:hover,
+#play-again-btn:hover,
+#share-results-btn:hover,
+#view-leaderboard-btn:hover {
+    background-color: rgba(15, 14, 23, 0.8);
+    color: #ffffff;  /* Keep text white */
+    border-color: #ffffff;
+}
+
+/* Add styles for the logo */
+.barkle-logo {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.barkle-logo:hover {
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .barkle-logo {
+        width: 60px;
+        height: 60px;
+        top: 5px;
+        right: 5px;
+    }
 }
