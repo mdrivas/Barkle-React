@@ -373,107 +373,375 @@
             top: 10px;
             right: 10px;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 8px;
         }
 
         .top-right-links a {
-            color: #538d4e;
+            color: #538d4e;  /* Same green color as other links */
             text-decoration: none;
             margin: 0 5px;
             transition: color 0.3s ease;
             font-size: 0.8rem;
-            opacity: 0.7;
         }
 
         .top-right-links a:hover {
-            color: #66aa61;
+            color: #66aa61;  /* Lighter green on hover */
         }
 
+        .faq-slider {
+            position: fixed;
+            bottom: -100%;  /* Start below the viewport */
+            left: 0;
+            right: 0;
+            width: 100vw; /* Use viewport width */
+            max-width: 100%; /* Ensure it doesn't exceed screen width */
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: bottom 0.3s ease;
+            backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(83, 141, 78, 0.3);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+            background: rgba(26, 26, 27, 0.98); /* Much less transparent background */
+            color: white; /* Ensure text is white */
+        }
+
+        .faq-slider.active {
+            bottom: 0;  /* Slide up to bottom of viewport */
+        }
+
+        .faq-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .faq-header h2 {
+            color: white; /* Change from green to white for better visibility */
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .close-faq {
+            color: white; /* Change from green to white */
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 10px;
+            opacity: 0.8;
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background: rgba(83, 141, 78, 0.2); /* Slightly more visible background */
+            border-radius: 8px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .faq-answer {
+            display: none;
+            padding: 10px;
+            margin-left: 10px;
+            border-left: 2px solid rgba(83, 141, 78, 0.3);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05); /* Subtle background for answers */
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .faq-answer.active {
+            display: block;
+        }
+
+        .arrow {
+            color: white; /* Change from green to white */
+            transition: transform 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .faq-question.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Update FAQ mobile styles */
         @media (max-width: 768px) {
-            footer {
-                padding: 5px 0;
+            .faq-slider {
+                max-height: 90vh; /* Larger height on mobile */
+                padding: 15px;
             }
-            
-            footer a {
-                font-size: 0.7rem;
+
+            .faq-header h2 {
+                font-size: 1rem;
             }
+
+            .faq-question h3 {
+                font-size: 0.9rem;
+                margin: 0;
+                flex: 1;
+                padding-right: 10px;
+            }
+
+            .faq-answer p {
+                font-size: 0.85rem;
+                line-height: 1.4;
+                margin: 5px 0;
+            }
+
+            .close-faq {
+                font-size: 1.2rem;
+                padding: 5px;
+            }
+
+            /* Add pull indicator */
+            .faq-header::before {
+                content: '';
+                position: absolute;
+                top: 5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40px;
+                height: 4px;
+                background: rgba(83, 141, 78, 0.3);
+                border-radius: 2px;
+            }
+
+            /* Better touch targets */
+            .faq-question {
+                padding: 12px 10px;
+                margin-bottom: 8px;
+            }
+
+            .faq-answer {
+                padding: 8px 12px;
+                margin-bottom: 12px;
+            }
+
+            /* Smoother animations */
+            .faq-slider {
+                transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+
+        /* Add bounce effect for mobile */
+        @keyframes slideUpBounce {
+            0% { transform: translateY(100%); }
+            70% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+
+        .faq-slider.active {
+            animation: slideUpBounce 0.5s ease forwards;
+        }
+
+        /* Add padding to the body to prevent overflow */
+        body {
+            padding: 0 10px; /* Add horizontal padding */
+            box-sizing: border-box; /* Include padding in element's total width */
+        }
+
+        /* Ensure the FAQ slider does not overflow */
+        .faq-slider {
+            width: calc(100% - 20px); /* Account for body padding */
+            left: 10px; /* Align with body padding */
+        }
+
+        /* Adjust the page container for mobile */
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 0 10px; /* Add padding to prevent overflow */
+                box-sizing: border-box;
+            }
+
+            .landing-container {
+                width: 100%; /* Ensure it fits within the viewport */
+                padding: 20px 10px; /* Add horizontal padding */
+            }
+        }
+
+        /* Fix right-side cutoff for all screen sizes */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            box-sizing: border-box;
+        }
+
+        /* Update FAQ slider positioning */
+        .faq-slider {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            width: 100vw; /* Use viewport width */
+            max-width: 100%; /* Ensure it doesn't exceed screen width */
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Update page container */
+        .page-container {
+            width: 100%;
+            max-width: 100vw;
+            margin: 0 auto;
+            padding: 0 10px;
+            box-sizing: border-box;
+            overflow: hidden; /* Contain all children */
+        }
+
+        /* Update landing container */
+        .landing-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Update modal content */
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .feedback-form textarea {
+            width: calc(100% - 24px); /* Adjust width to prevent overflow */
+            height: 150px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(83, 141, 78, 0.3);
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .submit-feedback {
+            background-color: #538d4e;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .submit-feedback:hover {
+            background-color: #66aa61;
+        }
+
+        .submit-feedback:disabled {
+            background-color: #4a4a4a;
+            cursor: not-allowed;
+        }
+
+        .feedback-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #538d4e;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 1.2rem;
+            text-align: center;
+            pointer-events: none;
+            min-width: 200px;
+        }
+
+        .feedback-popup.show {
+            display: block;
+            opacity: 1;
         }
 
         .ad-container-mobile {
-            margin: 20px auto;
+            margin: 0 auto;  /* Changed from 20px auto */
             text-align: center;
             width: 100%;
-            max-width: 320px;
+            max-width: 728px;
             overflow: hidden;
+            position: relative;  /* Changed from fixed */
+            transform: none;    /* Remove transform */
         }
 
         @media (max-width: 768px) {
             .ad-container-mobile {
-                margin-bottom: 60px;
+                transform: scale(0.44);
+                height: 90px;
+                margin: 0 auto;  /* Reset margin */
             }
             
             .landing-container {
-                padding-top: 60px;
-                padding-bottom: 0;
-                justify-content: flex-start;
-            }
-
-            .logo-container {
-                margin-top: 20px;
+                padding-bottom: 60px;  /* Reduced padding */
             }
         }
 
-        html, body {
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-            overflow-y: hidden; /* Disable vertical scrolling */
-            height: 100%; /* Ensure full height */
+        .name-modal .modal-content {
+            text-align: center;
+            padding: 30px;
         }
 
-        @media (max-width: 768px) {
-            .landing-container {
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                padding: 20px 20px 60px;
-            }
+        .name-input {
+            width: 100%;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(83, 141, 78, 0.3);
+            color: white;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
 
-            .logo-container {
-                width: 150px;
-                height: 150px;
-                margin: 0 auto 15px;
-            }
+        .submit-name {
+            background-color: #538d4e;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
 
-            .landing-logo {
-                font-size: 2rem;
-                margin-bottom: 15px;
-            }
-
-            .landing-description {
-                font-size: 1rem;
-                margin-bottom: 20px;
-            }
-
-            .button-group {
-                gap: 10px;
-            }
-
-            .play-button, .leaderboard-button {
-                padding: 12px 24px;
-                font-size: 1rem;
-            }
-
-            .total-games-played {
-                margin: 15px 0;
-                font-size: 0.9rem;
-            }
-
-            .ad-container-mobile {
-                margin: 10px auto 0;
-                position: fixed;
-                bottom: 40px;
-                left: 50%;
-                transform: translateX(-50%);
-            }
+        .submit-name:hover {
+            background-color: #66aa61;
         }
     </style>
     <!-- Google Analytics -->
@@ -502,7 +770,62 @@
 <body>
     <div class="top-right-links">
         <a href="/privacy.html">Privacy Policy</a> |
-        <a href="/terms.html">Terms of Service</a>
+        <a href="/terms.html">Terms of Service</a> |
+        <a href="#" class="faq-toggle">FAQ</a> |
+        <a href="#" class="feedback-toggle">Feedback</a>
+        <div class="faq-slider">
+            <div class="faq-header">
+                <h2>Frequently Asked Questions</h2>
+                <span class="close-faq">&times;</span>
+            </div>
+            <div class="faq-content">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>How do I play?</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>You get 5 chances to guess different dog breeds from their photos. A new set of challenges every day!</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>What are the streaks?</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>- Guess Streak 🔥: Number of consecutive correct guesses<br>
+                           - Daily Streak 🔥: Number of consecutive days played</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>When do new puzzles come out?</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>New dog breeds are available every day at midnight in your local time.</p>
+                    </div>
+                </div>
+                <div class="faq-item"></div>
+                    <div class="faq-question">
+                        <h3>Can i lose my guessing streak playing yesterdays puzzle?</h3>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No, yesterday's puzzle wont affect your guessing streak.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="name-modal modal">
+        <div class="modal-content">
+            <h2>🐕 Welcome to Barkle! 🐕</h2>
+            <p>What should we call you?</p>
+            <input type="text" placeholder="Your name" class="name-input" maxlength="20" value="">
+            <button class="submit-name">Let's Play!</button>
+        </div>
     </div>
     <div class="page-container">
         <div class="landing-container">
@@ -537,6 +860,22 @@
             <div id="leaderboardContent"></div>
         </div>
     </div>
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeFeedback()">&times;</span>
+            <h2>🐾 Send Feedback 🐾</h2>
+            <div class="feedback-form">
+                <textarea 
+                    id="feedbackText" 
+                    placeholder="Share your thoughts, suggestions, or report issues..."
+                    maxlength="500"
+                ></textarea>
+                <div class="char-count">0/500</div>
+                <button onclick="submitFeedback()" class="submit-feedback">Send Feedback</button>
+            </div>
+        </div>
+    </div>
+    <div id="feedbackPopup" class="feedback-popup">Thank you for your feedback!</div>
     <script>
         function showLeaderboard() {
             const modal = document.getElementById('leaderboardModal');
@@ -683,6 +1022,107 @@
                 showLeaderboard();
             }
         };
+
+        // Add this JavaScript at the end of your script section
+        document.querySelector('.faq-toggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            const slider = document.querySelector('.faq-slider');
+            slider.classList.toggle('active');
+            document.body.classList.toggle('no-scroll');
+        });
+
+        document.querySelector('.close-faq').addEventListener('click', function() {
+            const slider = document.querySelector('.faq-slider');
+            slider.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        });
+
+        // Add click handlers for FAQ questions
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const answer = this.nextElementSibling;
+                const arrow = this.querySelector('.arrow');
+                
+                // Toggle this answer
+                this.classList.toggle('active');
+                answer.classList.toggle('active');
+                
+                // Optional: close other answers
+                document.querySelectorAll('.faq-answer.active').forEach(otherAnswer => {
+                    if (otherAnswer !== answer) {
+                        otherAnswer.classList.remove('active');
+                        otherAnswer.previousElementSibling.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        function showFeedback() {
+            const modal = document.getElementById('feedbackModal');
+            modal.classList.add('show');
+            document.body.classList.add('no-scroll');
+        }
+
+        function closeFeedback() {
+            const modal = document.getElementById('feedbackModal');
+            modal.classList.remove('show');
+            document.body.classList.remove('no-scroll');
+        }
+
+        function submitFeedback() {
+            const feedbackText = document.getElementById('feedbackText').value.trim();
+            if (!feedbackText) return;
+
+            const db = firebase.database();
+            const deviceId = localStorage.getItem('deviceId');
+            const playerName = localStorage.getItem('playerName') || 'Anonymous';
+
+            const feedback = {
+                text: feedbackText,
+                deviceId: deviceId,
+                playerName: playerName,
+                timestamp: new Date().toISOString(),
+                date: new Date().toDateString()
+            };
+
+            db.ref('feedback').push(feedback)
+                .then(() => {
+                    showFeedbackPopup();
+                    document.getElementById('feedbackText').value = '';
+                    closeFeedback();
+                })
+                .catch((error) => {
+                    console.error('Error submitting feedback:', error);
+                    alert('Error submitting feedback. Please try again.');
+                });
+        }
+
+        function showFeedbackPopup() {
+            const popup = document.getElementById('feedbackPopup');
+            popup.style.display = 'block';
+            // Force reflow
+            popup.offsetHeight;
+            popup.classList.add('show');
+            
+            setTimeout(() => {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 300); // Wait for fade out animation
+            }, 3000);
+        }
+
+        // Add character count functionality
+        document.getElementById('feedbackText').addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.querySelector('.char-count').textContent = `${charCount}/500`;
+        });
+
+        // Add click handler for feedback toggle
+        document.querySelector('.feedback-toggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            showFeedback();
+        });
     </script>
 </body>
 </html> 
