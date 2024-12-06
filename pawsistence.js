@@ -343,11 +343,7 @@ class PawsistenceGame {
             const highestStreak = userData.highestStreak || 0;
             const dogEmojis = '🐶'.repeat(Math.min(parseInt(highestStreak), 5));
             
-            const shareText = `Pawsistence is Key! 🔑
-My Highest Streak: ${highestStreak} ${dogEmojis}
-
-Can you beat my streak?
-https://barkle.netlify.app`;
+            const shareText = ('Pawsistence is Key! 🔑\nMy Highest Streak: ' + highestStreak + ' ' + dogEmojis + '\n\nCan you beat my streak?\nhttps://barkle.netlify.app').trim();
 
             if (navigator.share) {
                 await navigator.share({ text: shareText });

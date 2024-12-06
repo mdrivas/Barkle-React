@@ -126,10 +126,10 @@ class BarkleGame {
                 <p>What should we call you?</p>
                 <input type="text" 
                        id="player-name" 
-                       maxlength="12"
+                       maxlength="12"  <!-- Limit input to 12 characters -->
                        placeholder="Your name"
                        class="name-input"
-                       value="${this.playerName || ''}">
+                       value="${this.playerName || ''}">  <!-- Pre-fill if exists -->
                 <button class="option-btn" id="save-name">Start Playing</button>
             </div>
         `;
