@@ -356,7 +356,6 @@ class PawsistenceGame {
             
             // Ensure we get a number, defaulting to 0 if undefined
             const highestStreak = parseInt(userData.highestStreak) || 0;
-            console.log('Sharing with streak:', highestStreak); // Debug log
             
             const dogEmojis = '🐶'.repeat(Math.min(highestStreak, 5));
             
@@ -366,7 +365,6 @@ class PawsistenceGame {
                 await navigator.share({ text: shareText });
             } else {
                 await navigator.clipboard.writeText(shareText);
-                alert('Results copied to clipboard!');
             }
         } catch (error) {
             console.error('Error sharing results:', error);
