@@ -407,22 +407,22 @@ class PawsistenceGame {
         modal.style.display = 'flex';
         modal.innerHTML = `
             <div class="modal-content">
-                <h2> Welcome to Pawsistence! 🐕</h2>
+                <h2>Welcome to Pawsistence! 🐕</h2>
                 <p>What should we call you?</p>
                 <input type="text" 
                        id="player-name" 
-                       maxlength="12"
+                       maxlength="20"
                        placeholder="Your name"
                        class="name-input"
                        value="${this.playerName || ''}">
-                <button class="option-btn" id="save-name">Start Playing</button>
+                <button class="submit-name">Let's Play!</button>
             </div>
         `;
 
         document.body.appendChild(modal);
 
         const input = modal.querySelector('#player-name');
-        const button = modal.querySelector('#save-name');
+        const button = modal.querySelector('.submit-name');
 
         const saveName = () => {
             let name = input.value.trim();
@@ -443,9 +443,9 @@ class PawsistenceGame {
         };
 
         button.onclick = saveName;
-        input.onkeypress = (e) => {
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') saveName();
-        };
+        });
     }
 
     containsBadWords(name) {

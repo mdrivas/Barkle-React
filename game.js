@@ -130,7 +130,7 @@ class BarkleGame {
                        placeholder="Your name"
                        class="name-input"
                        value="${this.playerName || ''}">
-                <button class="option-btn" id="save-name">Start Playing</button>
+                <button class="submit-name">Let's Play!</button>
             </div>
         `;
 
